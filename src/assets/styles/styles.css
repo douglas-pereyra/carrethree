@@ -1,0 +1,956 @@
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px; /* Este padding contribui para a altura da navbar */
+  background-color: #fff; /* Essencial para não ser transparente */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Mantém a sombra */
+
+  /* --- Adicione/Modifique estas propriedades para fixar a navbar --- */
+  position: fixed;      /* Fixa a navbar em relação à janela de visualização */
+  top: 0;               /* Cola no topo */
+  left: 0;              /* Cola na esquerda */
+  width: 100%;          /* Faz ocupar toda a largura */
+  z-index: 1000;        /* Garante que fique acima da maioria dos outros conteúdos */
+  /* A altura da sua navbar será determinada pelo seu conteúdo e padding.
+     Ex: Se o conteúdo + padding resultar em 60px de altura, essa é a altura dela.
+     Vamos assumir uma altura de aproximadamente 70px para o próximo passo, ajuste se necessário.
+  */
+}
+
+/* Logo */
+.navbar-logo img {
+  height: 50px;
+}
+
+/* Pesquisa */
+.navbar-search {
+  flex: 1;
+  padding: 0 32px;
+  position: relative;
+}
+
+.navbar-search form {
+  position: relative;
+  width: 100%;
+}
+
+.navbar-search input {
+  width: 100%;
+  padding: 8px 16px;
+  padding-right: 40px;
+  border: 1px solid #149c68;
+  border-radius: 999px;
+  font-size: 1rem;
+}
+
+.search-btn {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  background: transparent;
+}
+
+/* Ícones SVG */
+.icon {
+  width: 24px;
+  height: 24px;
+  stroke: #555;
+}
+
+.icon:hover {
+  stroke: #149c68;
+}
+
+/* Área dos ícones de login e carrinho */
+.navbar-icons {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Links dentro dos ícones */
+.navbar-icons a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: black;
+  font-weight: 500;
+  position: relative;
+  transition: color 0.2s;
+}
+
+/* Hover geral nos links */
+.navbar-icons a:hover {
+  color: #149c68;
+}
+
+/* Hover nos SVGs dentro dos links */
+.navbar-icons a:hover .icon {
+  stroke: #149c68;
+}
+
+/* Carrinho específico */
+.cart {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: black;
+  font-weight: 500;
+  position: relative;
+}
+
+/* Ícone do carrinho + contador juntos */
+.cart-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Contador de itens no carrinho */
+.cart-count {
+  position: absolute;
+  top: -6px;
+  right: -15px;
+  background-color: #149c68;
+  color: white;
+  font-size: 0.65rem;
+  padding: 2px 5px;
+  border-radius: 999px;
+  font-weight: bold;
+}
+
+/* Barra de categorias */
+.categoria-barra {
+  display: flex;
+  justify-content: space-around; /* Distribui os itens com espaço igual ao redor deles */
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 15px; /* Espaço vertical e horizontal entre os itens se quebrarem linha */
+  padding: 12px 8px; /* Reduz o padding lateral para os itens ficarem mais próximos das bordas da barra */
+  background-color: #f8f8f8;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  width: 100%; /* Garante que a barra tente ocupar toda a largura disponível */
+  box-sizing: border-box; /* Importante se você tiver padding e width 100% */
+}
+
+/* Menu lateral ("Todos") */
+.categoria-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: black;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Ícone do menu de categorias */
+.menu-icon {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor; /* Herda a cor do texto do pai */
+}
+
+/* Lista de categorias */
+.categoria-lista {
+  display: flex;
+  flex: 1;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.categoria-lista a {
+  text-decoration: none;
+  color: #444;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.categoria-lista a:hover {
+  color: #149c68;
+}
+
+
+
+/* Seção de produtos */
+.produtos {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* Padrão para telas grandes */
+  gap: 24px;
+  padding: 16px; /* Reduzindo um pouco o padding geral para dar mais espaço */
+  background-color: #f9f9f9;
+  margin: 0 auto; /* Centraliza, mas permite que ocupe a largura */
+  max-width: 1400px; /* Define uma largura máxima para o container de produtos em telas muito grandes */
+}
+
+
+/* Cada produto */
+.produto {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: box-shadow 0.2s;
+  justify-content: space-between;
+}
+
+.produto:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.produto img {
+  height: 150px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+/* Nome do produto */
+.produto h3 {
+  font-size: 1rem;
+  color: #333;
+  margin: 8px 0;
+}
+
+.preco-e-controle {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Preço */
+.preco {
+  font-size: 1.1rem;
+  color: #149c68;
+  font-weight: bold;
+}
+
+/* Controle de quantidade */
+.controle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.controle button {
+  width: 32px;
+  height: 32px;
+  background-color: #149c68;
+  border: none;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.controle input {
+  width: 32px;
+  height: 32px;
+  text-align: center;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Botão Adicionar ao Carrinho */
+.adicionar-carrinho {
+  margin-top: auto;
+  background-color: #149c68;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.adicionar-carrinho:hover {
+  background-color: #149c68;
+}
+
+
+
+/* Carrinho */
+.carrinho {
+  display: flex;
+  padding: 32px;
+  gap: 32px;
+}
+
+.produtos-carrinho {
+  flex: 2;
+  background-color: #fff;
+  padding: 16px;
+  border: 1px solid #149c68;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+}
+
+.produtos-carrinho h2 {
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+}
+
+.produto-item {
+  display: flex;
+  /* justify-content: space-between;
+  margin-bottom: 16px; */
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  gap: 16px;
+}
+
+.produto-info {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.produto-info img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.produto-info h4 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.quantidade {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.quantidade button {
+  width: 30px;
+  height: 30px;
+  background-color: #149c68;
+  color: #fff;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.quantidade input {
+  width: 32px;
+  height: 32px;
+  text-align: center;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+
+
+.preco {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.preco-unitario, .preco-total {
+  font-weight: bold;
+}
+
+.remover {
+  flex: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.valor-total {
+  flex: 1;
+  background-color: #fdfdfd; /* Um tom ligeiramente diferente do fundo da página, se desejar */
+  padding: 24px; /* Um pouco mais de padding */
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Sombra um pouco mais suave ou pronunciada */
+  /* height: fit-content; */ /* Adiciona isso para que a caixa não estique desnecessariamente se o flex container permitir */
+  border: 1px solid #e9e9e9; /* Borda sutil */
+}
+
+.valor-total h2 {
+  font-size: 1.6rem; /* Título um pouco maior */
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center; /* Centralizar título */
+  border-bottom: 1px solid #eee; /* Linha abaixo do título */
+  padding-bottom: 10px;
+}
+
+.valor-total p strong {
+  color: #333;
+  font-weight: 600;
+}
+
+/* Linha do Total com mais destaque e margem inferior */
+.valor-total p.total-line {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #222;
+  margin-top: 20px; /* Aumentar margem superior */
+  padding-top: 16px;
+  border-top: 2px solid #149c68;
+  margin-bottom: 24px; /* ADICIONAR MARGEM INFERIOR para separar do primeiro botão */
+}
+
+.valor-total p strong { /* Para "Subtotal:", "Frete:", "Total:" */
+  color: #333;
+  font-weight: 600; /* Um pouco mais de peso na fonte */
+}
+
+/* Linha do Total com mais destaque */
+.valor-total p:last-of-type { /* Supondo que o Total seja o último <p> antes dos botões */
+  font-size: 1.2rem; /* Fonte maior para o total */
+  font-weight: bold; /* Negrito */
+  color: #222;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 2px solid #149c68; /* Linha de destaque acima do total */
+}
+
+.valor-total .btn-pagamento {
+  display: block; /* Garante que o Link (tag <a>) ocupe a largura e permita margens */
+  width: 100%;
+  background-color: #108a54;
+  color: white;
+  padding: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-align: center; /* Centraliza o texto dentro do botão */
+  /* margin-top: 24px;  Removido pois a margem inferior do p.total-line cuidará disso */
+  margin-bottom: 12px; /* ADICIONAR MARGEM INFERIOR para separar do botão de limpar carrinho */
+  transition: background-color 0.2s ease;
+  text-decoration: none; /* Remover sublinhado do Link */
+}
+
+.valor-total .btn-pagamento:hover {
+  background-color: #0c6b41;
+}
+
+.btn-limpar-carrinho {
+  display: block; /* Garante que o botão ocupe a largura e permita margens */
+  width: 100%;
+  /* margin-top: 12px; Removido pois a margem inferior do btn-pagamento cuidará disso */
+  background-color: #dc3545; /* VERMELHO para ação destrutiva */
+  color: white;
+  border: none; /* Remover borda anterior, ou ajustar para combinar com o vermelho */
+  /* border: 1px solid #c82333; */ /* Exemplo de borda vermelha mais escura */
+  padding: 12px; /* Ajustar padding se necessário */
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  text-align: center; /* Centraliza o texto dentro do botão */
+  transition: background-color 0.2s ease;
+}
+
+.btn-limpar-carrinho:hover {
+  background-color: #c82333; /* Vermelho mais escuro no hover */
+}
+
+.icon-trash {
+  width: 32px;
+  height: 32px;
+  stroke: #555;
+  cursor: pointer;
+  transition: stroke 0.2s;
+}
+
+.icon-trash:hover {
+  stroke: #149c68;
+}
+
+/* Telas Médias-Grandes (ex: Desktops menores e Laptops, <= 1200px) */
+@media (max-width: 1200px) {
+  .produtos {
+    grid-template-columns: repeat(4, 1fr); /* 4 colunas */
+    margin: 0 32px; /* Reduzindo a margem lateral */
+  }
+}
+
+/* Telas Médias (ex: Tablets em paisagem, <= 992px) */
+@media (max-width: 992px) {
+  .produtos {
+    grid-template-columns: repeat(3, 1fr); /* 3 colunas */
+    margin: 0 24px;
+  }
+  .navbar {
+    padding: 12px 24px; /* Reduzir padding da navbar */
+  }
+
+  .navbar-search {
+    padding: 0 16px; /* Reduzir padding da barra de pesquisa */
+  }
+
+  .navbar-search input {
+    font-size: 0.9rem; /* Diminuir um pouco a fonte do input */
+  }
+
+  .navbar-icons {
+    gap: 16px; /* Reduzir espaço entre ícones */
+  }
+
+  .navbar-icons a {
+    font-size: 0.9rem; /* Diminuir fonte dos links dos ícones */
+  }
+
+  .navbar-logo img {
+    height: 40px; /* Diminuir um pouco o logo */
+  }
+
+  /* Para a barra de categorias */
+  .categoria-barra {
+    padding: 10px 24px;
+    gap: 16px;
+  }
+  .categoria-lista {
+    margin-right: 0; /* Remover a margem grande à direita */
+    justify-content: flex-start; /* Alinhar itens à esquerda e deixar quebrar linha */
+    gap: 10px 15px; /* Espaçamento entre categorias que quebram linha */
+  }
+
+  .carrinho {
+    flex-direction: column; /* Empilha a lista de produtos e o resumo */
+    padding: 24px;
+    gap: 24px;
+  }
+
+  .produtos-carrinho,
+  .valor-total {
+    flex: 1 1 100%; /* Permite que ambos ocupem a largura total quando empilhados */
+  }
+}
+
+/* Telas Pequenas (ex: Tablets em retrato, <= 768px) */
+@media (max-width: 768px) {
+  .produtos {
+    grid-template-columns: repeat(2, 1fr); /* 2 colunas */
+    gap: 16px; /* Reduzindo o espaçamento entre os cards */
+    padding: 16px;
+    margin: 0 16px;
+  }
+
+  .navbar {
+    flex-wrap: wrap; /* Permitir que os itens da navbar quebrem linha */
+    padding: 10px 16px;
+    justify-content: center; /* Centralizar quando quebrar linha */
+    gap: 10px; /* Espaço se os itens quebrarem linha */
+  }
+
+  .navbar-logo {
+    flex-basis: 100%; /* Logo ocupa toda a largura */
+    text-align: center; /* Centraliza o logo */
+    margin-bottom: 10px;
+  }
+
+  .navbar-search {
+    order: 3; /* Mudar a ordem da barra de pesquisa para depois dos ícones */
+    flex-basis: 100%; /* Barra de pesquisa ocupa toda a largura */
+    padding: 0;
+  }
+
+  .navbar-icons {
+    order: 2; /* Ícones vêm antes da pesquisa */
+    flex-basis: 100%; /* Ícones ocupam toda a largura */
+    justify-content: center; /* Centralizar os ícones */
+    gap: 20px;
+  }
+
+  .navbar-icons .login,
+  .navbar-icons .cart {
+    font-size: 0.85rem; /* Ajustar tamanho da fonte */
+  }
+  .navbar-icons .login .icon, /* Selecionando o SVG dentro do link */
+  .navbar-icons .cart .icon {
+    width: 20px; /* Diminuir ícones */
+    height: 20px;
+  }
+
+  /* Para a barra de categorias em telas pequenas */
+  .categoria-barra {
+    padding: 8px 16px;
+    flex-direction: column; /* Empilhar o menu "Todos" e a lista */
+    align-items: center;
+  }
+  .categoria-menu {
+    margin-bottom: 8px; /* Espaço abaixo do "Todos" */
+  }
+  .categoria-lista {
+    width: 100%; /* Lista ocupa toda a largura */
+    justify-content: space-around; /* Distribuir melhor os itens */
+  }
+  .categoria-lista a {
+    font-size: 0.9rem;
+  }
+
+  .carrinho {
+    padding: 16px;
+  }
+
+  .produto-item {
+    /* Considerar empilhar ou simplificar ainda mais se necessário */
+    /* Por enquanto, vamos reduzir o gap e padding */
+    gap: 12px;
+    padding: 10px;
+  }
+
+  .produto-info {
+    gap: 10px; /* Espaço entre imagem e texto do produto */
+  }
+
+  .produto-info img {
+    width: 60px; /* Imagem um pouco menor */
+    height: 60px;
+  }
+
+  .produto-info h4 {
+    font-size: 0.9rem; /* Nome do produto menor */
+  }
+
+  .quantidade {
+    gap: 6px; /* Menor espaço nos controles de quantidade */
+  }
+  .quantidade button { /* Botões + e - */
+    width: 26px;
+    height: 26px;
+    font-size: 1rem;
+  }
+  .quantidade input {
+    width: 30px; /* Input de quantidade */
+    height: 26px;
+    font-size: 0.9rem;
+  }
+
+  .preco .preco-total-item,
+  .preco .preco-unitario-item { /* Preços */
+    font-size: 0.9rem;
+  }
+
+  .icon-trash { /* Ícone da lixeira */
+    width: 28px;
+    height: 28px;
+  }
+
+  .valor-total {
+    padding: 12px;
+  }
+  .valor-total h2 {
+    font-size: 1.3rem;
+  }
+  .valor-total p {
+    font-size: 0.95rem;
+  }
+  .valor-total .btn-pagamento {
+    font-size: 1rem; /* Botão de pagamento um pouco menor */
+    padding: 10px;
+  }
+}
+
+/* Telas Extra Pequenas (ex: Celulares, <= 576px) */
+@media (max-width: 576px) {
+  .produtos {
+    grid-template-columns: 1fr; /* 1 coluna */
+    gap: 16px;
+    padding: 16px;
+    margin: 0 8px;
+  }
+
+  .produto-item {
+    flex-direction: column; /* Empilha os elementos dentro de cada item do carrinho */
+    align-items: flex-start; /* Alinha à esquerda quando empilhado */
+  }
+  .produto-info {
+    width: 100%; /* Info ocupa toda a largura */
+    margin-bottom: 8px;
+  }
+  .quantidade {
+    margin-bottom: 8px;
+    align-self: flex-start; /* Alinha controles de quantidade à esquerda */
+  }
+  .preco { /* Preço total do item */
+    margin-bottom: 8px;
+    align-self: flex-start; /* Alinha preço à esquerda */
+  }
+  .remover { /* Botão remover */
+    align-self: flex-end; /* Alinha botão remover à direita */
+  }
+}
+
+/* Ajustes para o componente individual .produto se necessário em telas pequenas */
+@media (max-width: 576px) {
+  .produto h3 { /* Exemplo: reduzir tamanho da fonte do nome do produto */
+    font-size: 0.9rem;
+  }
+  .produto .preco { /* Exemplo: reduzir tamanho da fonte do preço */
+    font-size: 1rem;
+  }
+  .produto .adicionar-carrinho { /* Exemplo: reduzir tamanho da fonte do botão */
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+  .produto .controle button { /* Exemplo: ajustar botões de quantidade */
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+  }
+  .produto .controle input {
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+  }
+}
+
+.login-page-container {
+  margin: 0;
+  padding: 20px; /* Adicionado padding para a página */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-family: 'Jost', sans-serif; /* Fonte específica da página de login */
+  background: linear-gradient(to bottom, #38c958 30%, #fff 100%); /* Fundo da página de login */
+}
+
+/* Logo específico da página de login (se você usar a classe 'logo-login-page' no JSX) */
+.login-page-container .logo-login-page {
+  width: 220px; /* Tamanho do seu logo original */
+  margin-bottom: 20px; /* Espaço abaixo do logo, antes do formulário */
+  /* O logo original era position:absolute. Se você o colocar no fluxo normal
+     dentro de login-page-container, não precisa de position:absolute. */
+}
+
+/* Contêiner principal dos formulários de login/cadastro */
+/* No JSX, você usou className="main-login-container" */
+.login-page-container .main-login-container {
+  width: 350px;
+  height: 500px;
+  background: #38c958; /* Fundo da caixa principal do formulário */
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 5px 20px 50px #000;
+  position: relative; /* Para posicionar as mensagens de erro/sucesso dentro dele */
+}
+
+.login-page-container #check {
+  display: none; /* Para o truque de UI com checkbox */
+}
+
+.login-page-container .signup {
+  width: 100%;
+  height: 100%;
+  position: relative; /* Seu CSS original tinha isso */
+}
+
+.login-page-container .login {
+  height: 460px;
+  background: #fff; /* Fundo branco para a parte de login quando ela "sobe" */
+  border-radius: 60% / 10%; /* Efeito de borda curvada */
+  transform: translateY(-170px); /* Posição inicial da caixa de login */
+  transition: .8s ease-in-out;
+}
+
+/* Estilos para labels dentro da página de login */
+.login-page-container label {
+  color: #fff; /* Cor padrão do label (usado no signup) */
+  font-size: 2.3em;
+  justify-content: center;
+  display: flex;
+  margin: 60px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: .5s ease-in-out;
+}
+
+/* Estilo específico para o label do formulário de LOGIN */
+.login-page-container .login label {
+  color: #38c958; /* Cor verde para o label "Login" */
+  transform: scale(.6); /* Tamanho inicial menor */
+}
+
+/* Estilos para inputs DENTRO da página de login */
+.login-page-container input {
+  width: 60%;
+  height: 20px;
+  justify-content: center;
+  display: flex;
+  margin: 20px auto;
+  padding: 10px;
+  border: none;
+  outline: none;
+  border-radius: 5px;
+}
+
+/* Inputs do formulário de SIGNUP */
+.login-page-container .signup input {
+  background: #fff; /* Fundo branco para inputs do signup */
+}
+.login-page-container .signup input::placeholder {
+  color: #aaa; /* Placeholder para inputs de fundo branco */
+}
+
+/* Inputs do formulário de LOGIN */
+.login-page-container .login input {
+  background: #e0dede; /* Fundo cinza claro para inputs do login (ou #38c958 se preferir o original) */
+}
+.login-page-container .login input::placeholder {
+  color: #555; /* Placeholder para inputs de fundo escuro/verde (se usar #38c958) ou cinza */
+  /* Se o fundo do input de login for #e0dede, um placeholder #777 ou #555 pode ser melhor. */
+  /* Seu CSS original tinha: color: #fff; para placeholder do login,
+     o que implica que o fundo do input de login deveria ser escuro, como o #38c958 original.
+     Se quiser manter isso, mude .login input { background: #38c958; } e .login input::placeholder { color: #fff; }
+  */
+}
+
+
+/* Estilos para botões DENTRO da página de login */
+.login-page-container button {
+  width: 60%;
+  height: 40px;
+  margin: 10px auto;
+  justify-content: center;
+  display: block;
+  color: #fff;
+  background: #383939; /* Cor escura para os botões */
+  font-size: 1em;
+  font-weight: bold;
+  margin-top: 20px;
+  outline: none;
+  border: none;
+  border-radius: 5px;
+  transition: .2s ease-in;
+  cursor: pointer;
+}
+
+.login-page-container button:hover {
+  background: #4e5050; /* Cor um pouco mais clara no hover */
+}
+
+/* Animações baseadas no estado do checkbox #check */
+.login-page-container #check:checked ~ .login {
+  transform: translateY(-500px); /* Move a caixa de login para cima */
+}
+
+.login-page-container #check:checked ~ .login label {
+  transform: scale(1); /* Label "Login" volta ao tamanho normal */
+}
+
+.login-page-container #check:checked ~ .signup label {
+  transform: scale(.6); /* Label "Sign up" diminui */
+}
+
+/* Mensagens de erro e sucesso posicionadas dentro do .main-login-container */
+.login-page-container .auth-error-message {
+  color: #b91c1c; /* Vermelho mais escuro */
+  background-color: #fee2e2; /* Fundo vermelho claro */
+  border: 1px solid #fca5a5; /* Borda vermelha */
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.9em;
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 40px); /* Largura considerando algum padding interno do .main-login-container */
+  box-sizing: border-box;
+}
+
+.login-page-container .auth-success-message {
+  color: #065f46; /* Verde escuro */
+  background-color: #d1fae5; /* Fundo verde claro */
+  border: 1px solid #6ee7b7; /* Borda verde */
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.9em;
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 40px); /* Largura considerando algum padding interno do .main-login-container */
+  box-sizing: border-box;
+}
+
+.admin-add-fab-button {
+  background-color: #28a745;
+  color: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+  cursor: pointer;
+}
+
+.admin-add-fab-button:hover {
+  background-color: #218838; /* Verde mais escuro */
+  transform: scale(1.05); /* Efeito de leve aumento */
+}
+
+/* Esconde as setas em navegadores baseados em WebKit (Chrome, Safari, Edge, Opera) */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Esconde as setas no Firefox e define a propriedade padrão 'appearance' */
+input[type=number] {
+  -moz-appearance: textfield; /* Específico para o Firefox remover as setas */
+  appearance: none;          /* Propriedade padrão para 'resetar' a aparência.
+                                 Em alguns contextos, 'textfield' poderia ser usado aqui,
+                                 mas 'none' é um reset mais comum e seguro para a propriedade padrão,
+                                 enquanto -moz-appearance: textfield; faz o trabalho específico no Firefox. */
+}
