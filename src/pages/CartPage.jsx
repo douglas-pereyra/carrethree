@@ -9,7 +9,7 @@ function CartPage() {
     removeItem,
     updateQuantity,
     clearCart,
-    getCartTotalPrice,
+    getCartTotalPrice,  
   } = useCart();
 
   console.log('CartPage - cartItems:', cartItems);
@@ -59,7 +59,7 @@ function CartPage() {
   }
 
   return (
-    <div className="carrinho"> {/* Classe principal do seu carrinho.html */}
+    <div className="carrinho">
       <div className="produtos-carrinho">
         <h2>Seu Carrinho</h2>
         {cartItems.map(item => (
@@ -68,7 +68,6 @@ function CartPage() {
               <img src={item.image} alt={item.name} />
               <div className="produto-texto">
                 <h4>{item.name}</h4>
-                {/* Preço unitário pode ser útil, mas o CSS original parece focar no total do item */}
                 <p className="preco-unitario-item">R$ {item.price.toFixed(2).replace('.', ',')}</p>
               </div>
             </div>
@@ -84,7 +83,7 @@ function CartPage() {
               <button className="mais" onClick={() => handleQuantityChange(item.id, item.quantity, 1)}>+</button>
             </div>
 
-            <div className="preco"> {/* No seu CSS, "preco" aqui é para o total do item */}
+            <div className="preco">
               <p className="preco-total-item">
                 R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}
               </p>

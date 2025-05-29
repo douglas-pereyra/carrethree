@@ -1,6 +1,6 @@
 // src/App.jsx
 import React, { useState, useEffect, useRef, useCallback } from 'react'; // Adicione useCallback
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 
 // Páginas
@@ -13,6 +13,8 @@ import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminPanelPage from './pages/admin/AdminPanelPage';
 import AdminAddProductPage from './pages/admin/AdminAddProductPage';
 import AdminEditProductPage from './pages/admin/AdminEditProductPage';
+import CheckoutPage from './pages/CheckoutPage';
+import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
 
 // Layout e Componentes de Rota
 import Navbar from './components/layout/Navbar';
@@ -21,6 +23,7 @@ import ProtectedRoute from './components/routes/ProtectedRoute';
 import AdminProtectedRoute from './components/routes/AdminProtectedRoute';
 
 function MainLayout() {
+  const navigate = useNavigate(); 
   const location = useLocation();
   const auth = useAuth();
 
@@ -29,6 +32,7 @@ function MainLayout() {
 
   const [selectedCustomerCategory, setSelectedCustomerCategory] = useState('Todos');
   const [navbarHeight, setNavbarHeight] = useState(0);
+  const [searchedName, setSearchedName] = useState('');
   const navbarRef = useRef(null);
 
   // Função para medir e definir a altura da Navbar
@@ -88,9 +92,25 @@ function MainLayout() {
   const calculatedPaddingTop = showNavbarAndCategoryBar ? `${navbarHeight}px` : '0';
   console.log('[MainLayout Render] paddingTop a ser aplicado:', calculatedPaddingTop);
 
+
+  useEffect(() => {
+    if (location.pathname !== '/') {
+      setSearchedName('');
+    }
+  }, [location.pathname]);
+  
+  const handleSearch = (search) => {
+    if (location.pathname === '/') {
+      setSearchedName(search);
+    } else {
+      navigate('/', { state: { searchTerm: search } });
+      setSearchedName(search);
+    }
+  };
+  
   return (
     <>
-      {showNavbarAndCategoryBar && <Navbar ref={navbarRef} />}
+      {showNavbarAndCategoryBar && <Navbar ref={navbarRef} onSearch={handleSearch} searchedName={searchedName}/>}
 
       <div style={{ paddingTop: calculatedPaddingTop }}>
         {showNavbarAndCategoryBar && location.pathname === '/' && (
@@ -101,12 +121,14 @@ function MainLayout() {
         )}
         <main>
           <Routes>
-            <Route path="/" element={<HomePage selectedCategory={selectedCustomerCategory} />} />
+            <Route path="/" element={<HomePage selectedCategory={selectedCustomerCategory} searchedName={searchedName} />} />
             <Route path="/produto/:productId" element={<ProductDetailsPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/carrinho" element={<CartPage />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/minha-conta" element={<MyAccountPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
             </Route>
             <Route element={<AdminProtectedRoute />}>
               <Route path="/admin/dashboard" element={<AdminDashboardPage />} />

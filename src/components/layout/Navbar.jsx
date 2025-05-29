@@ -1,12 +1,13 @@
 // src/components/layout/Navbar.jsx
-import React from 'react'; // Importe React para usar forwardRef
+import React, { useState } from 'react'; // Importe React para usar forwardRef
+
 import { Link } from 'react-router-dom';
 import logoCarrethree from '../../assets/images/logopreta.png'; // Ajuste o caminho se o seu logo estiver em outro local
 import { useCart } from '../../hooks/useCart.js';
 import { useAuth } from '../../hooks/useAuth.js';
 
 // Envolva o componente com React.forwardRef
-const Navbar = React.forwardRef((props, ref) => { // props são as props normais, ref é a ref encaminhada
+const Navbar = React.forwardRef(({ onSearch, searchedName = ''}, ref) => { // props são as props normais, ref é a ref encaminhada
   const { getCartTotalItems } = useCart();
   const cartItemCount = getCartTotalItems();
   const auth = useAuth();
@@ -25,6 +26,16 @@ const Navbar = React.forwardRef((props, ref) => { // props são as props normais
       Entre ou cadastre-se
     </>
   );
+
+  const [localSearch, setLocalSearch] = useState(searchedName);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const inputValue = e.target.elements.search?.value;
+    if (onSearch) {
+      onSearch(inputValue);
+    }
+  };
 
   if (auth.isAuthenticated) {
     if (auth.currentUser?.isAdmin) {
@@ -45,14 +56,25 @@ const Navbar = React.forwardRef((props, ref) => { // props são as props normais
           <Link to="/"><img src={logoCarrethree} alt="Logo Supermercado Carrethree" /></Link>
         </div>
         <div className="navbar-search">
-          <form onSubmit={(e) => e.preventDefault()}>
-            <input type="text" placeholder="Buscar produtos..." disabled />
-            <button type="submit" className="search-btn" disabled>
-              <svg xmlns="http://www.w3.org/2000/svg" className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <circle cx="11" cy="11" r="8" strokeWidth="2"/>
-                <line x1="23" y1="23" x2="16.65" y2="16.65" strokeWidth="2"/>
-              </svg>
+          <form onSubmit={handleSearchSubmit}>
+            <input 
+              type="text"
+              name="search"
+              placeholder="Buscar produtos..."
+              defaultValue={searchedName} // Use defaultValue instead of value
+            />
+            <button type="submit" className="search-btn">
+              {/* Search icon */}
             </button>
+            {searchedName && (
+              <button 
+                type="button"
+                className="clear-search-btn"
+                onClick={() => onSearch('')}
+              >
+                ×
+              </button>
+            )}
           </form>
         </div>
         <div className="navbar-icons">
@@ -85,8 +107,13 @@ const Navbar = React.forwardRef((props, ref) => { // props são as props normais
         </Link>
       </div>
       <div className="navbar-search">
-        <form onSubmit={(e) => e.preventDefault()}>
-          <input type="text" placeholder="Buscar produtos..." />
+        <form onSubmit={handleSearchSubmit}>
+          <input 
+            type="text" 
+            name="search"
+            placeholder="Buscar produtos..." 
+            defaultValue={searchedName}
+          />
           <button type="submit" className="search-btn">
             <svg xmlns="http://www.w3.org/2000/svg" className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <circle cx="11" cy="11" r="8" strokeWidth="2"/>
