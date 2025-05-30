@@ -144,21 +144,38 @@ The mock-up pages have been thoroughly tested, and everything functions as expec
 
 To set up the project and run the mock-ups:
 
-1. **Install necessary software:**
-   - Text editor (e.g., Visual Studio Code, Sublime Text).
-   - Web browser (e.g., Google Chrome, Firefox).
+### 1. Install Prerequisites
+- [Node.js](https://nodejs.org/) (LTS)
+- npm (comes with Node)
 
-2. **Clone the repository:**
-   - Clone the project repository from GitHub:
-     ```bash
-     git clone https://github.com/douglas-pereyra/OnlineStore.git
-     ```
 
-3. **Open the project:**
-   - Open the `index.html` file in a web browser to view the homepage.
-   - Navigate through the pages as needed.
+### 2. Clone the Repository
+```bash
+git clone https://github.com/douglas-pereyra/OnlineStore.git
+cd OnlineStore
+```
 
----
+### 3. Install Dependencies
+```bash
+npm install
+```
+
+### 4. Run in Development Mode
+```bash
+npm run dev
+```
+
+> Open the local URL in your browser (usually `http://localhost:5173`)
+
+### 5. Build for Production
+```bash
+npm run build
+```
+
+### 6. Preview Production Build
+```bash
+npm run preview
+```
 
 ## Problems
 

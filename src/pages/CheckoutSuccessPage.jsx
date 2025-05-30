@@ -2,10 +2,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../hooks/useCart';
+import { useEffect } from 'react';
+
+
+
 
 function CheckoutSuccessPage() {
     const { clearCart } = useCart();
-    clearCart();
+    
+    useEffect(() => {// Executa apenas uma vez na montagem
+        clearCart(); // Limpa o carrinho assim que a página é carregada 
+    }, []);
+
+
     return (
         <div style={{ 
         maxWidth: '800px', 
