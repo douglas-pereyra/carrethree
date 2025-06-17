@@ -1,5 +1,5 @@
 // src/components/layout/Navbar.jsx
-import React, { useState } from 'react'; // Importe React para usar forwardRef
+import React from 'react'; // Importe React para usar forwardRef
 
 import { Link } from 'react-router-dom';
 import logoCarrethree from '../../assets/images/logopreta.png'; // Ajuste o caminho se o seu logo estiver em outro local
@@ -26,8 +26,6 @@ const Navbar = React.forwardRef(({ onSearch, searchedName = ''}, ref) => { // pr
       Entre ou cadastre-se
     </>
   );
-
-  const [localSearch, setLocalSearch] = useState(searchedName);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();

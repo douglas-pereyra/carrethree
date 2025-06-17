@@ -44,7 +44,7 @@ function AdminAddProductPage() {
         image,
       });
       alert('Produto adicionado com sucesso!');
-      navigate('/admin/produtos'); // Volta para a lista de produtos
+      navigate('/admin/dashboard'); // Volta para a lista de produtos
     } catch (err) {
       console.error("Erro ao adicionar produto:", err);
       setError('Falha ao adicionar produto. Tente novamente.');

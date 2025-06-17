@@ -11,14 +11,14 @@ function AdminProductCard({ product, onDelete }) {
 
   const handleDelete = () => {
     if (onDelete && typeof onDelete === 'function') {
-      onDelete(product.id, product.name); // Passa ID e nome para a função de deletar
+      onDelete(product._id, product.name); // Passa ID e nome para a função de deletar
     }
   };
 
   return (
     <div style={styles.productCard}>
       <div style={styles.iconsContainer}>
-        <Link to={`/admin/produtos/editar/${product.id}`} style={styles.iconLink} title="Editar Produto">
+        <Link to={`/admin/produtos/editar/${product._id}`} style={styles.iconLink} title="Editar Produto">
           <FontAwesomeIcon icon={faPencilAlt} />
         </Link>
         <button onClick={handleDelete} style={styles.iconButton} title="Deletar Produto">

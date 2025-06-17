@@ -1,98 +1,111 @@
 // src/components/product/ProductCard.jsx
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; // Importe Link para navegação
+import { Link } from 'react-router-dom';
 import { useCart } from '../../hooks/useCart'; // Hook para adicionar ao carrinho
 
 function ProductCard({ product }) {
-  // Estado local para controlar a quantidade selecionada para este card
   const [quantity, setQuantity] = useState(1);
-  const { addItem } = useCart(); // Função para adicionar itens ao carrinho do CartContext
+  const { cartItems, addItem } = useCart(); // Pegamos também os cartItems para verificar o estoque
 
-  // Se não houver dados do produto, não renderiza nada (ou poderia renderizar um placeholder)
+  // Se não houver dados do produto, não renderiza nada
   if (!product) {
     return null;
   }
 
-  // Funções para manipular a quantidade
+  // --- NOVA LÓGICA DE ESTOQUE ---
+  // Encontra este produto específico no carrinho para saber a quantidade atual
+  const cartItem = cartItems.find(item => item.id === product.id);
+  const quantityInCart = cartItem ? cartItem.quantity : 0;
+
+  // Verifica as condições de estoque
+  const isOutOfStock = product.countInStock === 0;
+  const isLimitReached = quantityInCart >= product.countInStock;
+
+  // Determina o texto e o estado do botão com base no estoque
+  let buttonText = 'Adicionar ao Carrinho';
+  let isButtonDisabled = false;
+
+  if (isOutOfStock) {
+    buttonText = 'Produto Esgotado';
+    isButtonDisabled = true;
+  } else if (isLimitReached) {
+    buttonText = 'Limite em Estoque';
+    isButtonDisabled = true;
+  }
+  // --- FIM DA NOVA LÓGICA ---
+
   const handleIncrement = () => {
-    setQuantity(prevQuantity => prevQuantity + 1);
+    // Não permite aumentar a quantidade do seletor além do estoque disponível
+    if (quantityInCart + quantity < product.countInStock) {
+      setQuantity(prevQuantity => prevQuantity + 1);
+    }
   };
 
   const handleDecrement = () => {
-    setQuantity(prevQuantity => (prevQuantity > 1 ? prevQuantity - 1 : 1)); // Não permite quantidade menor que 1
+    setQuantity(prevQuantity => (prevQuantity > 1 ? prevQuantity - 1 : 1));
   };
 
   const handleQuantityChange = (event) => {
     const newQuantity = parseInt(event.target.value, 10);
+    // Limita a quantidade digitada ao estoque disponível
     if (!isNaN(newQuantity) && newQuantity > 0) {
-      setQuantity(newQuantity);
-    } else if (event.target.value === '') {
-      // Se o campo for limpo, pode-se definir a quantidade para 1 ou o valor anterior.
-      // Aqui, definimos para 1 para simplicidade.
-      setQuantity(1);
+      const availableStock = product.countInStock - quantityInCart;
+      setQuantity(Math.min(newQuantity, availableStock));
     }
   };
-
-  // Função para adicionar o produto ao carrinho
+  
   const handleAddToCart = () => {
-    if (product) {
-      addItem(product, quantity); // Adiciona o produto e a quantidade selecionada ao carrinho
-      //alert(`${quantity}x "${product.name}" adicionado(s) ao carrinho!`);
-      // Você pode querer resetar a quantidade para 1 após adicionar, se desejar
-      // setQuantity(1);
+    // Dupla verificação para garantir que não adiciona além do estoque
+    if (product && !isButtonDisabled) {
+      const availableStock = product.countInStock - quantityInCart;
+      const quantityToAdd = Math.min(quantity, availableStock);
+
+      if (quantityToAdd > 0) {
+        addItem(product, quantityToAdd);
+      }
     }
   };
 
   return (
-    <div className="produto"> {/* Classe principal do card, vinda do seu styles.css */}
-      {/* Imagem do produto como um link para a página de detalhes do produto */}
+    <div className="produto">
+      {/* Imagem e Título do produto (sem alterações) */}
       <Link to={`/produto/${product.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
         <img
-          src={product.image || '/images/placeholder-image.png'} // Usa um placeholder se a imagem não estiver definida
+          src={product.image || '/images/placeholder-image.png'}
           alt={product.name}
-          style={{
-            width: '100%', // Faz a imagem ocupar a largura do contêiner do card
-            height: '150px', // Altura fixa para a imagem
-            objectFit: 'contain', // Garante que a imagem caiba sem distorcer, pode ser 'cover'
-            cursor: 'pointer',    // Indica que a imagem é clicável
-            marginBottom: '10px', // Espaço abaixo da imagem
-          }}
+          style={{ width: '100%', height: '150px', objectFit: 'contain', cursor: 'pointer', marginBottom: '10px' }}
         />
       </Link>
-
-      {/* Nome do produto como um link para a página de detalhes do produto */}
       <Link to={`/produto/${product.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-        <h3
-          style={{
-            cursor: 'pointer',
-            minHeight: '44px', // Ajuda a alinhar títulos de diferentes tamanhos em múltiplas linhas
-            fontSize: '1rem',  // Tamanho da fonte do título
-            fontWeight: '600', // Peso da fonte
-            margin: '0 0 5px 0', // Margens
-            color: '#333',      // Cor do texto
-          }}
-        >
+        <h3 style={{ cursor: 'pointer', minHeight: '44px', fontSize: '1rem', fontWeight: '600', margin: '0 0 5px 0', color: '#333' }}>
           {product.name}
         </h3>
       </Link>
 
-      <div className="preco-e-controle"> {/* Contêiner para preço e controles */}
+      {/* Exibição do estoque (opcional, mas útil para o usuário) */}
+      <p style={{ fontSize: '0.8em', color: isOutOfStock ? 'red' : '#6c757d' }}>
+        {isOutOfStock ? 'Sem estoque' : `Estoque: ${product.countInStock}`}
+      </p>
+
+      <div className="preco-e-controle">
         <p className="preco">
           R$ {typeof product.price === 'number' ? product.price.toFixed(2).replace('.', ',') : 'N/A'}
         </p>
-        <div className="controle"> {/* Controles de quantidade */}
-          <button className="menos" aria-label="Diminuir quantidade" onClick={handleDecrement}>-</button>
+        <div className="controle">
+          <button className="menos" aria-label="Diminuir quantidade" onClick={handleDecrement} disabled={isButtonDisabled}>-</button>
           <input
             type="number"
             value={quantity}
             onChange={handleQuantityChange}
             min="1"
             aria-label="Quantidade"
+            disabled={isButtonDisabled}
           />
-          <button className="mais" aria-label="Aumentar quantidade" onClick={handleIncrement}>+</button>
+          <button className="mais" aria-label="Aumentar quantidade" onClick={handleIncrement} disabled={isButtonDisabled}>+</button>
         </div>
-        <button className="adicionar-carrinho" onClick={handleAddToCart}>
-          Adicionar ao Carrinho
+        {/* Botão de adicionar ao carrinho agora é dinâmico */}
+        <button className="adicionar-carrinho" onClick={handleAddToCart} disabled={isButtonDisabled}>
+          {buttonText}
         </button>
       </div>
     </div>

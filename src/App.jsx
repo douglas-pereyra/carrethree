@@ -1,7 +1,8 @@
 // src/App.jsx
-import React, { useState, useEffect, useRef, useCallback } from 'react'; // Adicione useCallback
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
+import { useProducts } from './hooks/useProducts'; // <-- MUDANÇA 1: Importação adicionada
 
 // Páginas
 import HomePage from './pages/HomePage';
@@ -23,9 +24,10 @@ import ProtectedRoute from './components/routes/ProtectedRoute';
 import AdminProtectedRoute from './components/routes/AdminProtectedRoute';
 
 function MainLayout() {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const location = useLocation();
   const auth = useAuth();
+  const { products } = useProducts(); // <-- MUDANÇA 2: Pegando os produtos do contexto
 
   const pathsWithoutNavbar = ['/login'];
   const showNavbarAndCategoryBar = !pathsWithoutNavbar.includes(location.pathname);
@@ -35,17 +37,12 @@ function MainLayout() {
   const [searchedName, setSearchedName] = useState('');
   const navbarRef = useRef(null);
 
-  // Função para medir e definir a altura da Navbar
-  // Envolvida em useCallback para estabilizar sua referência se usada em outros useEffects ou como prop
   const measureNavbarHeight = useCallback(() => {
     if (showNavbarAndCategoryBar && navbarRef.current) {
       if (!auth.isLoadingAuth) {
         const currentNavbarHeight = navbarRef.current.offsetHeight;
-        console.log('[MainLayout measureNavbarHeight] Altura medida da Navbar:', currentNavbarHeight);
         if (currentNavbarHeight > 0 && currentNavbarHeight !== navbarHeight) {
           setNavbarHeight(currentNavbarHeight);
-        } else if (currentNavbarHeight === 0) {
-          console.warn('[MainLayout measureNavbarHeight] Altura da Navbar medida como 0. Verifique CSS/conteúdo.');
         }
       }
     } else if (!showNavbarAndCategoryBar) {
@@ -53,52 +50,37 @@ function MainLayout() {
         setNavbarHeight(0);
       }
     }
-  }, [showNavbarAndCategoryBar, auth.isLoadingAuth, navbarRef, navbarHeight]); // Adicionado navbarHeight para evitar loop se a altura for 0 e tentar setar para 0
+  }, [showNavbarAndCategoryBar, auth.isLoadingAuth, navbarRef, navbarHeight]);
 
-  // Efeito para medir a altura da Navbar na carga inicial e quando dependências mudam
   useEffect(() => {
-    console.log(`[MainLayout useEffect - Carga/Auth] Disparado. showNav: ${showNavbarAndCategoryBar}, isLoadingAuth: ${auth.isLoadingAuth}, path: ${location.pathname}`);
     measureNavbarHeight();
-  }, [measureNavbarHeight, showNavbarAndCategoryBar, auth.isLoadingAuth, location.pathname]); // measureNavbarHeight é agora uma dependência
+  }, [measureNavbarHeight, showNavbarAndCategoryBar, auth.isLoadingAuth, location.pathname]);
 
-  // Efeito para lidar com o redimensionamento da janela
   useEffect(() => {
-    // Só adiciona o listener se a navbar estiver sendo mostrada
     if (showNavbarAndCategoryBar) {
       const handleResize = () => {
-        console.log('[MainLayout handleResize] Janela redimensionada, recalculando altura da Navbar.');
         measureNavbarHeight();
       };
-
       window.addEventListener('resize', handleResize);
-      // Chama uma vez na montagem deste efeito também, para garantir que a altura está correta
-      // após a navbar de loading ter potencialmente mudado para a navbar final.
       handleResize();
-
-      // Função de limpeza para remover o event listener quando o componente desmontar
-      // ou quando showNavbarAndCategoryBar mudar para false
       return () => {
-        console.log('[MainLayout handleResize] Removendo event listener de resize.');
         window.removeEventListener('resize', handleResize);
       };
     }
-  }, [showNavbarAndCategoryBar, measureNavbarHeight]); // Depende de showNavbarAndCategoryBar e da função de medição
+  }, [showNavbarAndCategoryBar, measureNavbarHeight]);
 
   const handleCustomerCategorySelect = (category) => {
     setSelectedCustomerCategory(category);
   };
 
-  console.log('[MainLayout Render] Estado navbarHeight ATUAL:', navbarHeight);
   const calculatedPaddingTop = showNavbarAndCategoryBar ? `${navbarHeight}px` : '0';
-  console.log('[MainLayout Render] paddingTop a ser aplicado:', calculatedPaddingTop);
-
 
   useEffect(() => {
     if (location.pathname !== '/') {
       setSearchedName('');
     }
   }, [location.pathname]);
-  
+
   const handleSearch = (search) => {
     if (location.pathname === '/') {
       setSearchedName(search);
@@ -107,14 +89,15 @@ function MainLayout() {
       setSearchedName(search);
     }
   };
-  
+
   return (
     <>
-      {showNavbarAndCategoryBar && <Navbar ref={navbarRef} onSearch={handleSearch} searchedName={searchedName}/>}
+      {showNavbarAndCategoryBar && <Navbar ref={navbarRef} onSearch={handleSearch} searchedName={searchedName} />}
 
       <div style={{ paddingTop: calculatedPaddingTop }}>
         {showNavbarAndCategoryBar && location.pathname === '/' && (
           <CategoryBar
+            products={products} // <-- MUDANÇA 3: Passando os produtos como prop
             onSelectCategory={handleCustomerCategorySelect}
             activeCategory={selectedCustomerCategory}
           />

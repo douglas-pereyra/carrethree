@@ -72,7 +72,7 @@ function AdminDashboardPage() {
         <div style={styles.productListGrid}>
           {filteredAdminProducts.map(product => (
             <AdminProductCard
-              key={product.id}
+              key={product._id}
               product={product}
               onDelete={handleDeleteProductRequest}
             />

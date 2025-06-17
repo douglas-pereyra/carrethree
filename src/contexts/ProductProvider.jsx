@@ -1,89 +1,127 @@
 // src/contexts/ProductProvider.jsx
 import React, { useState, useEffect } from 'react';
 import { ProductContext } from './product-context.js';
-import initialMockProducts from '../data/mockProducts.js'; // Seus dados mockados estáticos
-
-// Função para obter os produtos iniciais.
-// Agora assume que initialMockProducts já usa strings para caminhos de imagem.
-const getInitialProducts = () => {
-  // Retorna uma cópia profunda para evitar mutações no array importado.
-  try {
-    return JSON.parse(JSON.stringify(initialMockProducts));
-  } catch (e) {
-    console.error("Erro ao clonar produtos iniciais (getInitialProducts):", e);
-    return []; // Retorna vazio em caso de erro na clonagem
-  }
-};
 
 export function ProductProvider({ children }) {
   const [products, setProducts] = useState([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
+  // Este useEffect agora busca os dados da nossa API real quando o app carrega
   useEffect(() => {
-    console.log("[ProductProvider] useEffect: Carregando produtos...");
-    try {
-      const storedProducts = localStorage.getItem('managedProducts');
-      if (storedProducts) {
-        console.log("[ProductProvider] Produtos encontrados no localStorage.");
-        setProducts(JSON.parse(storedProducts));
-      } else {
-        console.log("[ProductProvider] Sem produtos no localStorage, usando mocks iniciais.");
-        const initialProducts = getInitialProducts();
-        setProducts(initialProducts);
-        localStorage.setItem('managedProducts', JSON.stringify(initialProducts));
-      }
-    } catch (error) {
-      console.error("[ProductProvider] Erro ao carregar/parsear produtos do localStorage. Usando mocks.", error);
-      const initialProducts = getInitialProducts();
-      setProducts(initialProducts); // Fallback
-      if (initialProducts.length > 0) { // Só salva se os mocks não estiverem vazios
-          localStorage.setItem('managedProducts', JSON.stringify(initialProducts));
-      }
-    }
-    setIsLoadingProducts(false);
-    console.log("[ProductProvider] Carregamento de produtos finalizado. isLoadingProducts:", false);
-  }, []);
+    const fetchProducts = async () => {
+      console.log("[ProductProvider] Buscando produtos da API real...");
+      try {
+        // A mágica acontece aqui!
+        const response = await fetch('http://localhost:5000/api/products');
+        
+        if (!response.ok) {
+          throw new Error('Falha ao buscar produtos da API');
+        }
 
-  const updateLocalStorage = (updatedProducts) => {
-    localStorage.setItem('managedProducts', JSON.stringify(updatedProducts));
-  };
+        const data = await response.json();
+        setProducts(data); // Atualiza nosso estado global com os produtos reais
+        console.log("[ProductProvider] Produtos carregados da API!", data);
 
-  const addProduct = async (productData) => {
-    console.log("[ProductProvider] Adicionando produto:", productData);
-    const newProduct = {
-      ...productData,
-      id: Date.now().toString(), // ID único simples
+      } catch (error) {
+        console.error("[ProductProvider] Erro ao buscar produtos:", error);
+      } finally {
+        setIsLoadingProducts(false);
+      }
     };
-    const updatedProducts = [...products, newProduct];
-    setProducts(updatedProducts);
-    updateLocalStorage(updatedProducts);
-    return newProduct;
+
+    fetchProducts();
+  }, []); // O array vazio [] garante que isso rode apenas uma vez.
+
+  // --- ATENÇÃO ---
+  // As funções abaixo ainda não estão conectadas ao backend.
+  // Elas apenas modificam o estado localmente. Faremos isso nos próximos passos.
+  const addProduct = async (productData) => {
+    try {
+      // Fazendo a requisição POST para o nosso backend
+      const response = await fetch('http://localhost:5000/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productData), // Converte o objeto do formulário para JSON
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao criar o produto na API');
+      }
+
+      const createdProduct = await response.json(); // Pega o produto recém-criado da resposta
+
+      // Atualiza o estado do frontend com o novo produto, para que a tela
+      // seja atualizada automaticamente, sem precisar recarregar a página.
+      setProducts(prevProducts => [...prevProducts, createdProduct]);
+      
+      console.log('Produto adicionado com sucesso:', createdProduct);
+      return { success: true, product: createdProduct };
+
+    } catch (error) {
+      console.error('Erro ao adicionar produto:', error);
+      return { success: false, message: error.message };
+    }
   };
 
   const updateProduct = async (productId, updatedData) => {
-    console.log(`[ProductProvider] Atualizando produto ID ${productId}:`, updatedData);
-    let foundProduct = null;
-    const updatedProducts = products.map(p => {
-      if (p.id === productId) {
-        foundProduct = { ...p, ...updatedData };
-        return foundProduct;
+    try {
+      const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
+        method: 'PUT', // Usando o método PUT que criamos no backend
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao atualizar o produto na API');
       }
-      return p;
-    });
-    setProducts(updatedProducts);
-    updateLocalStorage(updatedProducts);
-    return foundProduct;
+
+      const updatedProductFromServer = await response.json();
+
+      // Atualiza a lista de produtos no estado do frontend para refletir a mudança
+      // sem precisar recarregar a página.
+      setProducts(prevProducts =>
+        prevProducts.map(p =>
+          p._id === updatedProductFromServer._id ? updatedProductFromServer : p
+        )
+      );
+
+      return { success: true, product: updatedProductFromServer };
+    } catch (error) {
+      console.error('Erro ao atualizar produto:', error);
+      return { success: false, message: error.message };
+    }
   };
 
   const deleteProduct = async (productId) => {
-    console.log(`[ProductProvider] Deletando produto ID ${productId}`);
-    const updatedProducts = products.filter(p => p.id !== productId);
-    setProducts(updatedProducts);
-    updateLocalStorage(updatedProducts);
+    try {
+      const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao deletar o produto na API');
+      }
+
+      // Se a deleção no backend foi um sucesso, removemos o produto
+      // da nossa lista no estado do frontend para a tela atualizar na hora.
+      setProducts(prevProducts =>
+        prevProducts.filter(p => p._id !== productId)
+      );
+
+      return { success: true };
+    } catch (error) {
+      console.error('Erro ao deletar produto:', error);
+      return { success: false, message: error.message };
+    }
   };
 
   const getProductById = (productId) => {
-    return products.find(p => p.id === productId);
+    // Agora o ID vem do MongoDB (_id), então comparamos com ele.
+    return products.find(p => p._id === productId);
   };
 
   const value = {
