@@ -1,6 +1,9 @@
 // backend/server.js
 
 // 1. Importação dos Módulos
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 import express from 'express';      // Framework para criar o servidor
 import dotenv from 'dotenv';        // Para gerenciar variáveis de ambiente (do arquivo .env)
 import cors from 'cors';            // Para permitir requisições de outros "endereços" (frontend)
@@ -29,6 +32,12 @@ app.get('/', (req, res) => {
 // "Monta" as rotas de produtos. Qualquer requisição que comece com /api/products
 // será gerenciada pelo nosso arquivo productRoutes.js
 app.use('/api/products', productRoutes);
+
+
+// Upload de imagens
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use('/uploads', express.static(path.join(__dirname, '/public/uploads')));
 
 // 5. Inicialização do Servidor
 const PORT = process.env.PORT || 5000; // Usa a porta definida no .env ou a porta 5000 como padrão

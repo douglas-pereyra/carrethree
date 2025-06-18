@@ -18,6 +18,9 @@ yarn-error.log*
 .env.local
 .env.*.local
 
+# Ignorar a pasta de uploads
+/public/uploads
+
 # Testes e cobertura
 coverage/
 .nyc_output/

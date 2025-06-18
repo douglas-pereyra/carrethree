@@ -58,12 +58,18 @@ export function ProductProvider({ children }) {
   };
 
   // As funções de CUD (Create, Update, Delete) foram atualizadas para manter as duas listas consistentes.
-  const addProduct = async (productData) => {
+  const addProduct = async (productFormData) => {
     try {
       const response = await fetch('http://localhost:5000/api/products', {
-        method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(productData)
+        method: 'POST',
+        body: productFormData
       });
-      if (!response.ok) throw new Error('Falha ao criar o produto na API');
+
+       if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Falha ao criar o produto na API');
+      }
+
       const createdProduct = await response.json();
       
       setAllProducts(prev => [...prev, createdProduct]);

@@ -1,6 +1,7 @@
 // backend/routes/productRoutes.js
 import express from 'express';
 import Product from '../models/Product.js';
+import upload from '../config/upload.js';
 
 const router = express.Router();
 
@@ -46,10 +47,26 @@ router.get('/:id', async (req, res) => {
 
 // @desc    Cria um novo produto
 // @route   POST /api/products
-router.post('/', async (req, res) => {
+router.post('/', upload.single('image'), async (req, res) => {
   try {
-    const { name, price, image, category, description, countInStock } = req.body;
-    const product = new Product({ name, price, image, category, description, countInStock });
+    const { name, price, category, description, countInStock } = req.body;
+    
+    if (!req.file) {
+      return res.status(400).json({ message: 'A imagem do produto é obrigatória.' });
+    }
+
+    // CORREÇÃO AQUI: Constrói a URL completa da imagem
+    const imageUrl = `${process.env.BACKEND_URL}/uploads/${req.file.filename}`;
+
+    const product = new Product({ 
+      name, 
+      price, 
+      image: imageUrl, // Salva a URL completa no banco
+      category, 
+      description, 
+      countInStock 
+    });
+
     const createdProduct = await product.save();
     res.status(201).json(createdProduct);
   } catch (error) {

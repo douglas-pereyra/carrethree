@@ -11,19 +11,28 @@ function AdminAddProductPage() {
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
-  const [image, setImage] = useState('');
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState('');
   const [countInStock, setCountInStock] = useState(0);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const uniqueCategories = [...new Set(allProducts.map(p => p.category))].sort();
 
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setImage(file); // Guarda o arquivo da imagem
+      setPreview(URL.createObjectURL(file)); // Cria uma URL temporária para o preview
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
 
     if (!name || !price || !category || !image || countInStock === '') {
-      setError('Por favor, preencha todos os campos obrigatórios.');
+      setError('Por favor, preencha todos os campos obrigatórios (incluindo a imagem).');
       return;
     }
 
@@ -41,9 +50,18 @@ function AdminAddProductPage() {
     }
 
     setIsSubmitting(true);
+
+    // Cria um objeto FormData para enviar os dados do produto, incluindo a imagem
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('price', priceNumber);
+    formData.append('category', category);
+    formData.append('description', description);
+    formData.append('countInStock', stockNumber);
+    formData.append('image', image); // Adiciona o arquivo da imagem
+
     try {
-      const productData = { name, price: priceNumber, category, description, image, countInStock: stockNumber };
-      const result = await addProduct(productData);
+      const result = await addProduct(formData);
 
       if (result.success) {
         alert('Produto adicionado com sucesso!');
@@ -99,9 +117,22 @@ function AdminAddProductPage() {
         </div>
 
         <div style={{ marginBottom: '15px' }}>
-          <label>URL da Imagem:</label>
-          <input type="text" value={image} onChange={(e) => setImage(e.target.value)} required style={{ width: '100%', padding: '8px', marginTop: '5px' }} />
+          <label>Imagem do Produto:</label>
+          <input 
+            type="file" 
+            accept="image/*"
+            onChange={handleImageChange} 
+            required 
+            style={{ width: '100%', padding: '8px', marginTop: '5px' }} 
+          />
         </div>
+
+        {preview && (
+          <div style={{ marginBottom: '15px', textAlign: 'center' }}>
+            <p>Preview:</p>
+            <img src={preview} alt="Preview do produto" style={{ maxWidth: '200px', maxHeight: '200px', border: '1px solid #ddd', borderRadius: '4px' }} />
+          </div>
+        )}
 
         <div style={{ marginBottom: '15px' }}>
           <label>Descrição:</label>
