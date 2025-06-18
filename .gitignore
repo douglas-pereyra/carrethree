@@ -19,7 +19,7 @@ yarn-error.log*
 .env.*.local
 
 # Ignorar a pasta de uploads
-/public/uploads
+public/uploads/
 
 # Testes e cobertura
 coverage/
