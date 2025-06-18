@@ -1,21 +1,20 @@
 // src/pages/admin/AdminDashboardPage.jsx
-import React, { useState } from 'react'; // Adicione useState
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useProducts } from '../../hooks/useProducts';
+import { useProducts } from '../../hooks/useProducts'; // <-- MUDANÇA: Importa o useProducts
 import { useAuth } from '../../hooks/useAuth';
 import AdminProductCard from '../../components/admin/AdminProductCard';
-import CategoryBar from '../../components/layout/CategoryBar'; // Importe a CategoryBar
+import CategoryBar from '../../components/layout/CategoryBar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 
 function AdminDashboardPage() {
-  const { products, isLoadingProducts, deleteProduct } = useProducts();
+  const { products, isLoadingProducts, deleteProduct } = useProducts(); // <-- MUDANÇA: Pega a lista de produtos
   const { currentUser, isLoadingAuth } = useAuth();
-  const [adminSelectedCategory, setAdminSelectedCategory] = useState('Todos'); // Estado local para filtro do admin
+  const [adminSelectedCategory, setAdminSelectedCategory] = useState('Todos');
 
   const handleDeleteProductRequest = async (productId, productName) => {
-    // ... (sua função existente)
-    if (window.confirm(`Tem certeza que deseja excluir o produto "${productName}" (ID: ${productId})?`)) {
+    if (window.confirm(`Tem certeza que deseja excluir o produto "${productName}"?`)) {
       try {
         await deleteProduct(productId);
         alert(`Produto "${productName}" excluído com sucesso!`);
@@ -30,6 +29,7 @@ function AdminDashboardPage() {
     setAdminSelectedCategory(category);
   };
 
+  // Unimos os dois 'loadings' em uma única verificação
   if (isLoadingProducts || isLoadingAuth) {
     return <div style={styles.pageMessage}>Carregando...</div>;
   }
@@ -38,7 +38,6 @@ function AdminDashboardPage() {
     return <div style={styles.pageMessage}>Acesso não autorizado.</div>;
   }
 
-  // Filtra os produtos para o admin
   const filteredAdminProducts = adminSelectedCategory && adminSelectedCategory !== 'Todos'
     ? products.filter(product => product.category === adminSelectedCategory)
     : products;
@@ -50,11 +49,12 @@ function AdminDashboardPage() {
           <h2>Gerenciamento de Produtos</h2>
           <p>Bem-vindo(a), {currentUser.name}!</p>
         </div>
-        {/* O botão Sair foi para /admin/panel */}
       </div>
 
-      {/* CategoryBar para o Admin */}
+      {/* --- A CategoryBar VOLTOU PARA CÁ --- */}
+      {/* Agora ela recebe a lista de produtos dinâmica */}
       <CategoryBar
+        products={products}
         onSelectCategory={handleAdminCategorySelect}
         activeCategory={adminSelectedCategory}
       />
@@ -83,58 +83,55 @@ function AdminDashboardPage() {
   );
 }
 
-// Estilos (mantidos da versão anterior, ajuste se necessário)
+// Os estilos continuam os mesmos
 const styles = {
-  pageContainer: {
-    padding: '20px',
-    maxWidth: '1200px',
-    margin: '0 auto',
-    position: 'relative',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '20px', // Reduzido um pouco para acomodar a CategoryBar
-    flexWrap: 'wrap',
-    gap: '15px',
-  },
-  headerText: {
-    flexGrow: 1,
-  },
-  addFabButton: {
-    backgroundColor: '#28a745',
-    color: 'white',
-    width: '60px',
-    height: '60px',
-    borderRadius: '50%',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    textDecoration: 'none',
-    fontSize: '1.8rem',
-    boxShadow: '0 4px 10px rgba(0,0,0,0.25)',
-    transition: 'background-color 0.2s ease-in-out, transform 0.1s ease-in-out',
-    cursor: 'pointer',
-    position: 'fixed',
-    bottom: '30px',
-    right: '30px',
-    zIndex: 1000,
-  },
-  productListGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-    gap: '20px',
-    marginTop: '20px',
-  },
-  pageMessage: {
-    textAlign: 'center',
-    padding: '40px',
-    fontSize: '1.2em',
-  }
-  // Se precisar de estilos específicos para a CategoryBar dentro do admin, adicione-os
-  // ou garanta que os estilos globais de .categoria-barra funcionem bem aqui.
-  // A CategoryBar no admin será renderizada logo abaixo do header.
-};
+    pageContainer: {
+      padding: '20px',
+      maxWidth: '1200px',
+      margin: '0 auto',
+      position: 'relative',
+    },
+    header: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '20px',
+      flexWrap: 'wrap',
+      gap: '15px',
+    },
+    headerText: {
+      flexGrow: 1,
+    },
+    addFabButton: {
+      backgroundColor: '#28a745',
+      color: 'white',
+      width: '60px',
+      height: '60px',
+      borderRadius: '50%',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      textDecoration: 'none',
+      fontSize: '1.8rem',
+      boxShadow: '0 4px 10px rgba(0,0,0,0.25)',
+      transition: 'background-color 0.2s ease-in-out, transform 0.1s ease-in-out',
+      cursor: 'pointer',
+      position: 'fixed',
+      bottom: '30px',
+      right: '30px',
+      zIndex: 1000,
+    },
+    productListGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+      gap: '20px',
+      marginTop: '20px',
+    },
+    pageMessage: {
+      textAlign: 'center',
+      padding: '40px',
+      fontSize: '1.2em',
+    }
+  };
 
 export default AdminDashboardPage;

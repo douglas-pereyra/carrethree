@@ -1,8 +1,8 @@
 // src/App.jsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
-import { useProducts } from './hooks/useProducts'; // <-- MUDANÇA 1: Importação adicionada
+import { useProducts } from './hooks/useProducts';
 
 // Páginas
 import HomePage from './pages/HomePage';
@@ -24,31 +24,36 @@ import ProtectedRoute from './components/routes/ProtectedRoute';
 import AdminProtectedRoute from './components/routes/AdminProtectedRoute';
 
 function MainLayout() {
-  const navigate = useNavigate();
   const location = useLocation();
   const auth = useAuth();
-  const { products } = useProducts(); // <-- MUDANÇA 2: Pegando os produtos do contexto
+  // Pega tudo que precisamos do nosso provider
+  const { allProducts, searchProducts, filterByCategory } = useProducts();
 
   const pathsWithoutNavbar = ['/login'];
   const showNavbarAndCategoryBar = !pathsWithoutNavbar.includes(location.pathname);
 
   const [selectedCustomerCategory, setSelectedCustomerCategory] = useState('Todos');
   const [navbarHeight, setNavbarHeight] = useState(0);
-  const [searchedName, setSearchedName] = useState('');
   const navbarRef = useRef(null);
 
+  const handleSearch = (keyword) => {
+    searchProducts(keyword);
+  };
+
+  const handleCustomerCategorySelect = (category) => {
+    setSelectedCustomerCategory(category);
+    filterByCategory(category); // Chama a função do provider para filtrar a lista
+  };
+
+  // Lógica para altura da Navbar (sem alterações)
   const measureNavbarHeight = useCallback(() => {
-    if (showNavbarAndCategoryBar && navbarRef.current) {
-      if (!auth.isLoadingAuth) {
-        const currentNavbarHeight = navbarRef.current.offsetHeight;
-        if (currentNavbarHeight > 0 && currentNavbarHeight !== navbarHeight) {
-          setNavbarHeight(currentNavbarHeight);
-        }
+    if (showNavbarAndCategoryBar && navbarRef.current && !auth.isLoadingAuth) {
+      const currentNavbarHeight = navbarRef.current.offsetHeight;
+      if (currentNavbarHeight > 0 && currentNavbarHeight !== navbarHeight) {
+        setNavbarHeight(currentNavbarHeight);
       }
-    } else if (!showNavbarAndCategoryBar) {
-      if (navbarHeight !== 0) {
-        setNavbarHeight(0);
-      }
+    } else if (!showNavbarAndCategoryBar && navbarHeight !== 0) {
+      setNavbarHeight(0);
     }
   }, [showNavbarAndCategoryBar, auth.isLoadingAuth, navbarRef, navbarHeight]);
 
@@ -58,53 +63,30 @@ function MainLayout() {
 
   useEffect(() => {
     if (showNavbarAndCategoryBar) {
-      const handleResize = () => {
-        measureNavbarHeight();
-      };
+      const handleResize = () => measureNavbarHeight();
       window.addEventListener('resize', handleResize);
       handleResize();
-      return () => {
-        window.removeEventListener('resize', handleResize);
-      };
+      return () => window.removeEventListener('resize', handleResize);
     }
   }, [showNavbarAndCategoryBar, measureNavbarHeight]);
 
-  const handleCustomerCategorySelect = (category) => {
-    setSelectedCustomerCategory(category);
-  };
-
   const calculatedPaddingTop = showNavbarAndCategoryBar ? `${navbarHeight}px` : '0';
-
-  useEffect(() => {
-    if (location.pathname !== '/') {
-      setSearchedName('');
-    }
-  }, [location.pathname]);
-
-  const handleSearch = (search) => {
-    if (location.pathname === '/') {
-      setSearchedName(search);
-    } else {
-      navigate('/', { state: { searchTerm: search } });
-      setSearchedName(search);
-    }
-  };
 
   return (
     <>
-      {showNavbarAndCategoryBar && <Navbar ref={navbarRef} onSearch={handleSearch} searchedName={searchedName} />}
-
+      {showNavbarAndCategoryBar && <Navbar ref={navbarRef} onSearch={handleSearch} />}
       <div style={{ paddingTop: calculatedPaddingTop }}>
         {showNavbarAndCategoryBar && location.pathname === '/' && (
           <CategoryBar
-            products={products} // <-- MUDANÇA 3: Passando os produtos como prop
+            products={allProducts} // A barra de categorias sempre usa a lista completa
             onSelectCategory={handleCustomerCategorySelect}
             activeCategory={selectedCustomerCategory}
           />
         )}
         <main>
           <Routes>
-            <Route path="/" element={<HomePage selectedCategory={selectedCustomerCategory} searchedName={searchedName} />} />
+            {/* HomePage não precisa mais de props de filtro/busca */}
+            <Route path="/" element={<HomePage />} />
             <Route path="/produto/:productId" element={<ProductDetailsPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/carrinho" element={<CartPage />} />

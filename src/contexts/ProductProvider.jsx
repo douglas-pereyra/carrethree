@@ -3,62 +3,73 @@ import React, { useState, useEffect } from 'react';
 import { ProductContext } from './product-context.js';
 
 export function ProductProvider({ children }) {
-  const [products, setProducts] = useState([]);
+  // allProducts: Guarda a lista completa e imutável de todos os produtos do DB.
+  const [allProducts, setAllProducts] = useState([]);
+  // displayedProducts: Guarda a lista que será exibida na tela (pode ser filtrada por busca ou categoria).
+  const [displayedProducts, setDisplayedProducts] = useState([]);
+
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
-  // Este useEffect agora busca os dados da nossa API real quando o app carrega
+  // Busca todos os produtos da API na montagem inicial do componente.
   useEffect(() => {
-    const fetchProducts = async () => {
-      console.log("[ProductProvider] Buscando produtos da API real...");
+    const fetchAllProducts = async () => {
+      setIsLoadingProducts(true);
       try {
-        // A mágica acontece aqui!
         const response = await fetch('http://localhost:5000/api/products');
-        
-        if (!response.ok) {
-          throw new Error('Falha ao buscar produtos da API');
-        }
-
+        if (!response.ok) throw new Error('A resposta da rede não foi ok');
         const data = await response.json();
-        setProducts(data); // Atualiza nosso estado global com os produtos reais
-        console.log("[ProductProvider] Produtos carregados da API!", data);
-
+        
+        setAllProducts(data); // Preenche a lista mestra
+        setDisplayedProducts(data); // Preenche a lista de exibição com todos os produtos inicialmente
+        
       } catch (error) {
-        console.error("[ProductProvider] Erro ao buscar produtos:", error);
+        console.error("Erro ao buscar produtos:", error);
       } finally {
         setIsLoadingProducts(false);
       }
     };
 
-    fetchProducts();
+    fetchAllProducts();
   }, []); // O array vazio [] garante que isso rode apenas uma vez.
 
-  // --- ATENÇÃO ---
-  // As funções abaixo ainda não estão conectadas ao backend.
-  // Elas apenas modificam o estado localmente. Faremos isso nos próximos passos.
+  // Busca produtos na API usando uma palavra-chave e atualiza APENAS a lista de exibição.
+  const searchProducts = async (keyword = '') => {
+    setIsLoadingProducts(true);
+    try {
+      const response = await fetch(`http://localhost:5000/api/products?keyword=${keyword}`);
+      if (!response.ok) throw new Error('A resposta da rede não foi ok');
+      const data = await response.json();
+      setDisplayedProducts(data);
+    } catch (error) {
+      console.error("Erro ao buscar produtos:", error);
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  };
+
+  // Filtra a lista MESTRA por categoria e atualiza a lista de exibição.
+  const filterByCategory = (category) => {
+    if (category === 'Todos') {
+      setDisplayedProducts(allProducts);
+    } else {
+      const filtered = allProducts.filter(p => p.category === category);
+      setDisplayedProducts(filtered);
+    }
+  };
+
+  // As funções de CUD (Create, Update, Delete) foram atualizadas para manter as duas listas consistentes.
   const addProduct = async (productData) => {
     try {
-      // Fazendo a requisição POST para o nosso backend
       const response = await fetch('http://localhost:5000/api/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(productData), // Converte o objeto do formulário para JSON
+        method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(productData)
       });
-
-      if (!response.ok) {
-        throw new Error('Falha ao criar o produto na API');
-      }
-
-      const createdProduct = await response.json(); // Pega o produto recém-criado da resposta
-
-      // Atualiza o estado do frontend com o novo produto, para que a tela
-      // seja atualizada automaticamente, sem precisar recarregar a página.
-      setProducts(prevProducts => [...prevProducts, createdProduct]);
+      if (!response.ok) throw new Error('Falha ao criar o produto na API');
+      const createdProduct = await response.json();
       
-      console.log('Produto adicionado com sucesso:', createdProduct);
-      return { success: true, product: createdProduct };
+      setAllProducts(prev => [...prev, createdProduct]);
+      setDisplayedProducts(prev => [...prev, createdProduct]);
 
+      return { success: true, product: createdProduct };
     } catch (error) {
       console.error('Erro ao adicionar produto:', error);
       return { success: false, message: error.message };
@@ -68,26 +79,14 @@ export function ProductProvider({ children }) {
   const updateProduct = async (productId, updatedData) => {
     try {
       const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
-        method: 'PUT', // Usando o método PUT que criamos no backend
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedData),
+        method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(updatedData)
       });
-
-      if (!response.ok) {
-        throw new Error('Falha ao atualizar o produto na API');
-      }
-
+      if (!response.ok) throw new Error('Falha ao atualizar o produto na API');
       const updatedProductFromServer = await response.json();
-
-      // Atualiza a lista de produtos no estado do frontend para refletir a mudança
-      // sem precisar recarregar a página.
-      setProducts(prevProducts =>
-        prevProducts.map(p =>
-          p._id === updatedProductFromServer._id ? updatedProductFromServer : p
-        )
-      );
+      
+      const updateList = (list) => list.map(p => p._id === updatedProductFromServer._id ? updatedProductFromServer : p);
+      setAllProducts(updateList);
+      setDisplayedProducts(updateList);
 
       return { success: true, product: updatedProductFromServer };
     } catch (error) {
@@ -98,19 +97,12 @@ export function ProductProvider({ children }) {
 
   const deleteProduct = async (productId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Falha ao deletar o produto na API');
-      }
-
-      // Se a deleção no backend foi um sucesso, removemos o produto
-      // da nossa lista no estado do frontend para a tela atualizar na hora.
-      setProducts(prevProducts =>
-        prevProducts.filter(p => p._id !== productId)
-      );
+      const response = await fetch(`http://localhost:5000/api/products/${productId}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Falha ao deletar o produto na API');
+      
+      const filterList = (list) => list.filter(p => p._id !== productId);
+      setAllProducts(filterList);
+      setDisplayedProducts(filterList);
 
       return { success: true };
     } catch (error) {
@@ -120,17 +112,20 @@ export function ProductProvider({ children }) {
   };
 
   const getProductById = (productId) => {
-    // Agora o ID vem do MongoDB (_id), então comparamos com ele.
-    return products.find(p => p._id === productId);
+    // Busca sempre na lista mestra para garantir que encontrará o produto, mesmo se a exibição estiver filtrada.
+    return allProducts.find(p => p._id === productId);
   };
 
   const value = {
-    products,
+    products: displayedProducts, // Para ProductList
+    allProducts: allProducts,     // Para CategoryBar
+    isLoadingProducts,
+    searchProducts,
+    filterByCategory,
     addProduct,
     updateProduct,
     deleteProduct,
     getProductById,
-    isLoadingProducts,
   };
 
   return <ProductContext.Provider value={value}>{children}</ProductContext.Provider>;

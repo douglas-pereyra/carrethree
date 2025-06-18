@@ -4,11 +4,21 @@ import Product from '../models/Product.js';
 
 const router = express.Router();
 
-// @desc    Busca todos os produtos
+// @desc    Busca todos os produtos (ou filtra por palavra-chave)
 // @route   GET /api/products
 router.get('/', async (req, res) => {
   try {
-    const products = await Product.find({});
+    // Verifica se existe um parâmetro 'keyword' na URL (ex: /api/products?keyword=leite)
+    const keyword = req.query.keyword
+      ? {
+          name: {
+            $regex: req.query.keyword, // A expressão regular para buscar o texto
+            $options: 'i', // 'i' para tornar a busca case-insensitive (não diferencia maiúsculas/minúsculas)
+          },
+        }
+      : {}; // Se não houver keyword, o objeto fica vazio e busca todos os produtos
+
+    const products = await Product.find({ ...keyword }); // Usa o filtro (se existir)
     res.json(products);
   } catch (error) {
     console.error(`Erro ao buscar produtos: ${error.message}`);

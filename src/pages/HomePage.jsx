@@ -2,12 +2,12 @@
 import React from 'react';
 import ProductList from '../components/product/ProductList';
 
-// HomePage agora recebe selectedCategory do MainLayout (via App.jsx)
-function HomePage({ selectedCategory, searchedName }) {
+// HomePage não precisa mais receber ou gerenciar props de filtro.
+// O componente ProductList pegará a lista de exibição correta diretamente do contexto.
+function HomePage() {
   return (
     <>
-      {/* A CategoryBar é renderizada pelo MainLayout e passa a categoria selecionada para cá */}
-      <ProductList selectedCategory={selectedCategory} searchedName={searchedName}/>
+      <ProductList />
     </>
   );
 }
