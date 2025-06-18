@@ -55,32 +55,45 @@ export function ProductProvider({ children }) {
   };
 
   // As funções de CUD (Create, Update, Delete) foram atualizadas para manter as duas listas consistentes.
-  const addProduct = async (productData) => {
+  const addProduct = async (productFormData) => { // Recebe o FormData da página
     try {
-      // 1. Pega os dados do utilizador do localStorage
+      // 1. Pega os dados do utilizador do LocalStorage para obter o token
+      // (Esta parte veio da branch 'main')
       const userInfo = JSON.parse(localStorage.getItem('carrethreeAuthUser'));
       const token = userInfo ? userInfo.token : null;
 
+      if (!token) {
+        console.error('Nenhum token encontrado, o usuário não está autenticado.');
+        return { success: false, message: 'Usuário não autenticado.' };
+      }
+
+      // 2. Monta a requisição fetch combinando as duas lógicas
       const response = await fetch('http://localhost:5000/api/products', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          // 2. Adiciona o token ao cabeçalho da requisição
+          // Adiciona o token de autorização
           'Authorization': `Bearer ${token}`,
+          // IMPORTANTE: NÃO defina o 'Content-Type' aqui. 
+          // O navegador fará isso automaticamente para FormData.
         },
-        body: JSON.stringify(productData),
+        body: productFormData, // Envia o FormData diretamente no corpo (da sua branch)
       });
 
+      // 3. Trata a resposta (lógica padrão)
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Falha ao criar o produto');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Falha ao criar o produto na API');
       }
 
       const createdProduct = await response.json();
+
       setAllProducts(prev => [...prev, createdProduct]);
       setDisplayedProducts(prev => [...prev, createdProduct]);
+
       return { success: true, product: createdProduct };
+
     } catch (error) {
+      console.error('Erro ao adicionar produto:', error);
       return { success: false, message: error.message };
     }
   };
