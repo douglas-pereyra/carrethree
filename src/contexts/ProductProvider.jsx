@@ -129,27 +129,37 @@ export function ProductProvider({ children }) {
 
   const deleteProduct = async (productId) => {
     try {
+      // 1. Pega os dados do usuário do LocalStorage para obter o token
       const userInfo = JSON.parse(localStorage.getItem('carrethreeAuthUser'));
       const token = userInfo ? userInfo.token : null;
-
+  
+      if (!token) {
+        console.error('Nenhum token encontrado, o usuário não está autenticado.');
+        return { success: false, message: 'Usuário não autenticado.' };
+      }
+  
+      // 2. Faz a requisição DELETE incluindo o cabeçalho de autorização
       const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
         method: 'DELETE',
         headers: {
-          // 3. Adiciona o token também na requisição de apagar
           'Authorization': `Bearer ${token}`,
         },
       });
-
+  
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Falha ao apagar o produto');
+        // Se o erro for 403 ou 401, o token pode ser inválido ou o usuário não é admin
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Falha ao deletar o produto');
       }
-
+  
+      // Se a requisição foi bem-sucedida, remove o produto das listas locais
       const filterList = (list) => list.filter(p => p._id !== productId);
       setAllProducts(filterList);
       setDisplayedProducts(filterList);
+  
       return { success: true };
     } catch (error) {
+      console.error('Erro ao deletar produto:', error);
       return { success: false, message: error.message };
     }
   };
