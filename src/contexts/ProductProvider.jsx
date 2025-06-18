@@ -10,7 +10,7 @@ export function ProductProvider({ children }) {
 
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
-  // Busca todos os produtos da API na montagem inicial do componente.
+  // Busca todos os produtos na carga inicial
   useEffect(() => {
     const fetchAllProducts = async () => {
       setIsLoadingProducts(true);
@@ -18,19 +18,16 @@ export function ProductProvider({ children }) {
         const response = await fetch('http://localhost:5000/api/products');
         if (!response.ok) throw new Error('A resposta da rede não foi ok');
         const data = await response.json();
-        
-        setAllProducts(data); // Preenche a lista mestra
-        setDisplayedProducts(data); // Preenche a lista de exibição com todos os produtos inicialmente
-        
+        setAllProducts(data);
+        setDisplayedProducts(data);
       } catch (error) {
         console.error("Erro ao buscar produtos:", error);
       } finally {
         setIsLoadingProducts(false);
       }
     };
-
     fetchAllProducts();
-  }, []); // O array vazio [] garante que isso rode apenas uma vez.
+  }, []);
 
   // Busca produtos na API usando uma palavra-chave e atualiza APENAS a lista de exibição.
   const searchProducts = async (keyword = '') => {
@@ -58,24 +55,43 @@ export function ProductProvider({ children }) {
   };
 
   // As funções de CUD (Create, Update, Delete) foram atualizadas para manter as duas listas consistentes.
-  const addProduct = async (productFormData) => {
+  const addProduct = async (productFormData) => { // Recebe o FormData da página
     try {
+      // 1. Pega os dados do utilizador do LocalStorage para obter o token
+      // (Esta parte veio da branch 'main')
+      const userInfo = JSON.parse(localStorage.getItem('carrethreeAuthUser'));
+      const token = userInfo ? userInfo.token : null;
+
+      if (!token) {
+        console.error('Nenhum token encontrado, o usuário não está autenticado.');
+        return { success: false, message: 'Usuário não autenticado.' };
+      }
+
+      // 2. Monta a requisição fetch combinando as duas lógicas
       const response = await fetch('http://localhost:5000/api/products', {
         method: 'POST',
-        body: productFormData
+        headers: {
+          // Adiciona o token de autorização
+          'Authorization': `Bearer ${token}`,
+          // IMPORTANTE: NÃO defina o 'Content-Type' aqui. 
+          // O navegador fará isso automaticamente para FormData.
+        },
+        body: productFormData, // Envia o FormData diretamente no corpo (da sua branch)
       });
 
-       if (!response.ok) {
+      // 3. Trata a resposta (lógica padrão)
+      if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Falha ao criar o produto na API');
       }
 
       const createdProduct = await response.json();
-      
+
       setAllProducts(prev => [...prev, createdProduct]);
       setDisplayedProducts(prev => [...prev, createdProduct]);
 
       return { success: true, product: createdProduct };
+
     } catch (error) {
       console.error('Erro ao adicionar produto:', error);
       return { success: false, message: error.message };
@@ -84,35 +100,56 @@ export function ProductProvider({ children }) {
 
   const updateProduct = async (productId, updatedData) => {
     try {
+      const userInfo = JSON.parse(localStorage.getItem('carrethreeAuthUser'));
+      const token = userInfo ? userInfo.token : null;
+
       const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
-        method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(updatedData)
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(updatedData),
       });
-      if (!response.ok) throw new Error('Falha ao atualizar o produto na API');
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Falha ao atualizar o produto');
+      }
+
       const updatedProductFromServer = await response.json();
-      
       const updateList = (list) => list.map(p => p._id === updatedProductFromServer._id ? updatedProductFromServer : p);
       setAllProducts(updateList);
       setDisplayedProducts(updateList);
-
       return { success: true, product: updatedProductFromServer };
     } catch (error) {
-      console.error('Erro ao atualizar produto:', error);
       return { success: false, message: error.message };
     }
   };
 
   const deleteProduct = async (productId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/products/${productId}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Falha ao deletar o produto na API');
-      
+      const userInfo = JSON.parse(localStorage.getItem('carrethreeAuthUser'));
+      const token = userInfo ? userInfo.token : null;
+
+      const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
+        method: 'DELETE',
+        headers: {
+          // 3. Adiciona o token também na requisição de apagar
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Falha ao apagar o produto');
+      }
+
       const filterList = (list) => list.filter(p => p._id !== productId);
       setAllProducts(filterList);
       setDisplayedProducts(filterList);
-
       return { success: true };
     } catch (error) {
-      console.error('Erro ao deletar produto:', error);
       return { success: false, message: error.message };
     }
   };

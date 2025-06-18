@@ -1,62 +1,79 @@
 // src/pages/ProductDetailsPage.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate }
-from 'react-router-dom';
-import { useProducts } from '../hooks/useProducts';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../hooks/useCart';
 
 function ProductDetailsPage() {
   const { productId } = useParams(); // Pega o ID da URL
-  const { getProductById, isLoadingProducts } = useProducts();
-  const { addItem } = useCart();
+  const { addItem, cartItems } = useCart();
   const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [notFound, setNotFound] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
+  // Este useEffect agora busca os dados diretamente da nossa API.
   useEffect(() => {
-    if (!isLoadingProducts) { // Só busca se os produtos já foram carregados no contexto
-      console.log(`[ProductDetailsPage] Procurando produto com ID: ${productId}`);
-      const foundProduct = getProductById(productId);
-      if (foundProduct) {
-        setProduct(foundProduct);
-        setNotFound(false);
-        console.log('[ProductDetailsPage] Produto encontrado:', foundProduct);
-      } else {
-        setNotFound(true);
-        console.warn(`[ProductDetailsPage] Produto com ID ${productId} não encontrado.`);
+    const fetchProductDetails = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`http://localhost:5000/api/products/${productId}`);
+        if (!response.ok) {
+          throw new Error('Produto não encontrado');
+        }
+        const data = await response.json();
+        setProduct(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
       }
-    }
-  }, [productId, getProductById, isLoadingProducts]);
+    };
 
+    fetchProductDetails();
+  }, [productId]); // Roda sempre que o ID na URL mudar.
+
+  // Lógica de Estoque (reaplicada aqui)
+  const cartItem = product ? cartItems.find(item => item._id === product._id) : null;
+  const quantityInCart = cartItem ? cartItem.quantity : 0;
+  const isOutOfStock = product && product.countInStock === 0;
+  const isLimitReached = product && quantityInCart >= product.countInStock;
+
+  let buttonText = 'Adicionar ao Carrinho';
+  let isButtonDisabled = false;
+
+  if (isOutOfStock) {
+    buttonText = 'Produto Esgotado';
+    isButtonDisabled = true;
+  } else if (isLimitReached) {
+    buttonText = 'Limite em Estoque';
+    isButtonDisabled = true;
+  }
+  
   const handleQuantityChange = (change) => {
-    setQuantity(prev => Math.max(1, prev + change));
-  };
-
-  const handleDirectQuantityInput = (event) => {
-    const value = parseInt(event.target.value, 10);
-    if (!isNaN(value) && value > 0) {
-      setQuantity(value);
-    } else if (event.target.value === '') {
-      setQuantity(1); // Ou mantenha o valor atual, ou trate como 1
+    const newQuantity = quantity + change;
+    const availableStock = product.countInStock - quantityInCart;
+    if (newQuantity > 0 && newQuantity <= availableStock) {
+        setQuantity(newQuantity);
     }
   };
 
   const handleAddToCart = () => {
-    if (product) {
-      addItem(product, quantity);
-      alert(`${quantity}x "${product.name}" adicionado(s) ao carrinho!`);
-      // Opcional: Redirecionar para o carrinho ou continuar comprando
-      // navigate('/carrinho');
+    if (product && !isButtonDisabled) {
+      const availableStock = product.countInStock - quantityInCart;
+      const quantityToAdd = Math.min(quantity, availableStock);
+      if (quantityToAdd > 0) {
+        addItem(product, quantityToAdd);
+      }
     }
   };
 
-  if (isLoadingProducts) {
+  if (isLoading) {
     return <div style={styles.pageMessage}>Carregando informações do produto...</div>;
   }
 
-  if (notFound) {
+  if (error) {
     return (
       <div style={styles.pageMessage}>
         <h2>Produto não encontrado</h2>
@@ -64,11 +81,6 @@ function ProductDetailsPage() {
         <Link to="/" style={styles.buttonLink}>Voltar para Home</Link>
       </div>
     );
-  }
-
-  if (!product) {
-    // Pode acontecer brevemente antes do useEffect definir o produto ou se algo der muito errado
-    return <div style={styles.pageMessage}>Carregando...</div>;
   }
 
   return (
@@ -81,24 +93,26 @@ function ProductDetailsPage() {
         <div style={styles.detailsContainer}>
           <h1 style={styles.productName}>{product.name}</h1>
           <p style={styles.productCategory}>Categoria: {product.category}</p>
+          <p style={{ fontSize: '0.9em', color: isOutOfStock ? 'red' : '#6c757d', marginBottom: '15px' }}>
+            {isOutOfStock ? 'Sem estoque' : `Estoque disponível: ${product.countInStock}`}
+          </p>
           <p style={styles.productPrice}>R$ {typeof product.price === 'number' ? product.price.toFixed(2).replace('.', ',') : 'N/A'}</p>
           <p style={styles.productDescription}>{product.description || 'Sem descrição disponível.'}</p>
 
           <div style={styles.actionsContainer}>
             <div style={styles.quantityControl}>
-              <button onClick={() => handleQuantityChange(-1)} style={styles.quantityButton}>-</button>
+              <button onClick={() => handleQuantityChange(-1)} style={styles.quantityButton} disabled={isButtonDisabled}>-</button>
               <input
                 type="number"
                 value={quantity}
-                onChange={handleDirectQuantityInput}
-                min="1"
+                readOnly
                 style={styles.quantityInput}
                 aria-label="Quantidade"
               />
-              <button onClick={() => handleQuantityChange(1)} style={styles.quantityButton}>+</button>
+              <button onClick={() => handleQuantityChange(1)} style={styles.quantityButton} disabled={isButtonDisabled}>+</button>
             </div>
-            <button onClick={handleAddToCart} style={styles.addToCartButton}>
-              Adicionar ao Carrinho
+            <button onClick={handleAddToCart} style={styles.addToCartButton} disabled={isButtonDisabled}>
+              {buttonText}
             </button>
           </div>
         </div>
@@ -107,7 +121,7 @@ function ProductDetailsPage() {
   );
 }
 
-// Estilos (mova para um arquivo CSS se preferir)
+// ... (seus estilos continuam aqui)
 const styles = {
   container: {
     maxWidth: '1000px',
@@ -127,11 +141,11 @@ const styles = {
   productDetailLayout: {
     display: 'flex',
     gap: '30px',
-    flexWrap: 'wrap', // Para responsividade
+    flexWrap: 'wrap',
   },
   imageContainer: {
-    flex: '1 1 300px', // Permite encolher e crescer, base de 300px
-    maxWidth: '400px', // Limita o tamanho máximo da imagem
+    flex: '1 1 300px',
+    maxWidth: '400px',
   },
   productImage: {
     width: '100%',
@@ -141,7 +155,7 @@ const styles = {
     border: '1px solid #eee',
   },
   detailsContainer: {
-    flex: '2 1 400px', // Permite crescer mais, base de 400px
+    flex: '2 1 400px',
   },
   productName: {
     fontSize: '2em',
@@ -151,7 +165,7 @@ const styles = {
   productCategory: {
     fontSize: '0.9em',
     color: '#6c757d',
-    marginBottom: '15px',
+    marginBottom: '5px',
     textTransform: 'uppercase',
   },
   productPrice: {
@@ -196,7 +210,7 @@ const styles = {
   },
   addToCartButton: {
     padding: '12px 25px',
-    backgroundColor: '#149c68', // Sua cor primária (do add ao carrinho na home)
+    backgroundColor: '#149c68',
     color: 'white',
     border: 'none',
     borderRadius: '5px',
@@ -205,13 +219,12 @@ const styles = {
     fontWeight: 'bold',
     transition: 'background-color 0.2s',
   },
-  // addToCartButton:hover { backgroundColor: '#108a54' } // Adicionar ao CSS
   pageMessage: {
     textAlign: 'center',
     padding: '40px',
     fontSize: '1.2em',
   },
-  buttonLink: { // Para o link de "Voltar para Home"
+  buttonLink: {
     display: 'inline-block',
     marginTop: '20px',
     padding: '10px 20px',
@@ -223,3 +236,4 @@ const styles = {
 };
 
 export default ProductDetailsPage;
+

@@ -1,24 +1,38 @@
 // backend/utils/seeder.js
 import dotenv from 'dotenv';
-import productsData from '../mockProducts.js'; // Importa os produtos da cópia que está na pasta backend
+import bcrypt from 'bcryptjs'; // <-- Importamos o bcrypt aqui
+import users from '../data/users.js';
+import productsData from '../data/mockProducts.js';
+import User from '../models/User.js';
 import Product from '../models/Product.js';
 import connectDB from '../config/db.js';
 
-// Carrega as variáveis de ambiente do arquivo .env
 dotenv.config();
-
-// Conecta ao banco de dados
 connectDB();
 
 const importData = async () => {
   try {
-    // Apaga todos os produtos existentes para não criar duplicatas
+    // Limpa as coleções antigas
     await Product.deleteMany();
+    await User.deleteMany();
     console.log('Dados antigos destruídos...');
 
-    // Insere os novos produtos do seu arquivo
+    // --- CORREÇÃO APLICADA AQUI ---
+    // Criptografa as senhas dos utilizadores admin ANTES de os inserir
+    const createdUsers = users.map(user => {
+        return {
+            ...user,
+            password: bcrypt.hashSync(user.password, 10)
+        }
+    });
+
+    await User.insertMany(createdUsers); // Insere os utilizadores já com a senha criptografada
+    console.log('✅ Utilizadores Admin Importados!');
+
+    // Insere os produtos
     await Product.insertMany(productsData);
-    console.log('✅ Dados Importados com Sucesso!');
+    console.log('✅ Produtos Importados com Sucesso!');
+
     process.exit();
   } catch (error) {
     console.error(`❌ Erro ao importar dados: ${error}`);
@@ -29,6 +43,7 @@ const importData = async () => {
 const destroyData = async () => {
   try {
     await Product.deleteMany();
+    await User.deleteMany();
     console.log('✅ Dados Destruídos com Sucesso!');
     process.exit();
   } catch (error) {
@@ -37,7 +52,6 @@ const destroyData = async () => {
   }
 };
 
-// Verifica se o comando foi executado com o argumento -d (para destruir)
 if (process.argv[2] === '-d') {
   destroyData();
 } else {
