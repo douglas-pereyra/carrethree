@@ -1,6 +1,7 @@
 // backend/routes/productRoutes.js
 import express from 'express';
 import Product from '../models/Product.js';
+import { protect, admin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -46,7 +47,7 @@ router.get('/:id', async (req, res) => {
 
 // @desc    Cria um novo produto
 // @route   POST /api/products
-router.post('/', async (req, res) => {
+router.post('/', protect, admin, async (req, res) => {
   try {
     const { name, price, image, category, description, countInStock } = req.body;
     const product = new Product({ name, price, image, category, description, countInStock });
@@ -61,7 +62,7 @@ router.post('/', async (req, res) => {
 // --- ROTA 2: ATUALIZAR UM PRODUTO ---
 // @desc    Atualiza um produto existente
 // @route   PUT /api/products/:id
-router.put('/:id', async (req, res) => {
+router.put('/:id', protect, admin, async (req, res) => {
     try {
       const { name, price, image, category, description, countInStock } = req.body;
       const product = await Product.findById(req.params.id);
@@ -88,7 +89,7 @@ router.put('/:id', async (req, res) => {
 // @desc    Deleta um produto
 // @route   DELETE /api/products/:id
 // @access  Privado/Admin (vamos proteger mais tarde)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', protect, admin, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
 
