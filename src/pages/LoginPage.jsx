@@ -1,6 +1,6 @@
 // src/pages/LoginPage.jsx
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 // Os estilos de login (.login-page-container, .main-login-container, etc.)
 // devem estar no seu arquivo CSS global (ex: styles.css) e devidamente escopados.
@@ -88,6 +88,10 @@ function LoginPage() {
 
   return (
     <div className="login-page-container">
+      <Link to="/" className="back-to-products-link">
+        &larr; Voltar à tela de produtos
+      </Link>
+      
       <div className="main-login-container">
         <input
           type="checkbox"
