@@ -1,6 +1,6 @@
 // src/pages/LoginPage.jsx
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 function LoginPage() {
@@ -61,6 +61,10 @@ function LoginPage() {
 
   return (
     <div className="login-page-container">
+      <Link to="/" className="back-to-products-link">
+        &larr; Voltar à tela de produtos
+      </Link>
+      
       <div className="main-login-container">
         <input type="checkbox" id="check" aria-hidden="true" checked={!isLoginView} onChange={handleToggleView} />
         <div className="signup">
