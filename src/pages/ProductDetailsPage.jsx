@@ -35,7 +35,7 @@ function ProductDetailsPage() {
   }, [productId]); // Roda sempre que o ID na URL mudar.
 
   // Lógica de Estoque (reaplicada aqui)
-  const cartItem = product ? cartItems.find(item => item._id === product._id) : null;
+  const cartItem = product ? cartItems.find(item => item.product._id === product._id) : null;
   const quantityInCart = cartItem ? cartItem.quantity : 0;
   const isOutOfStock = product && product.countInStock === 0;
   const isLimitReached = product && quantityInCart >= product.countInStock;

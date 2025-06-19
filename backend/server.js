@@ -9,6 +9,7 @@ import cors from 'cors';            // Para permitir requisições de outros "en
 import connectDB from './config/db.js'; // Nossa função de conexão com o MongoDB
 import productRoutes from './routes/productRoutes.js'; // Nosso arquivo de rotas para produtos
 import userRoutes from './routes/userRoutes.js'; // <-- Importa as rotas de usuário
+import cartRoutes from './routes/cartRoutes.js';
 
 dotenv.config();
 connectDB();
@@ -24,6 +25,7 @@ app.get('/', (req, res) => {
 // "Monta" as rotas
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes); // <-- Diz ao Express para usar as rotas de usuário
+app.use('/api/cart', cartRoutes);
 
 // Upload de imagens
 const __filename = fileURLToPath(import.meta.url);

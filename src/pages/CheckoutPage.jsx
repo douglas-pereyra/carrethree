@@ -31,7 +31,7 @@ const isValidCreditCard = (cardNumber) => {
   };
 
 function CheckoutPage() {
-    const { cartItems, getCartTotalPrice, clearCart } = useCart();
+    const { cartItems, getCartTotalPrice } = useCart();
     const { currentUser } = useAuth();
     const navigate = useNavigate();   
     console.log('CheckoutPage montado. Itens no carrinho:', cartItems.length);
@@ -652,14 +652,14 @@ function CheckoutPage() {
                 <h2 style={{ fontSize: '1.2rem', marginBottom: '20px' }}>Resumo do Pedido</h2>
                 
                 <div style={{ borderBottom: '1px solid #eee', paddingBottom: '15px' }}>
-                {cartItems.map(item => (
-                    <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span>{item.name} × {item.quantity}</span>
-                    </div>
-                    <span>R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}</span>
-                    </div>
-                ))}
+                    {cartItems
+                        .filter(item => item && item.product) // Filtro de segurança
+                        .map(item => (
+                        <div key={item.product._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                            <span>{item.product.name} &times; {item.quantity}</span>
+                            <span>R$ {(item.product.price * item.quantity).toFixed(2).replace('.', ',')}</span>
+                        </div>
+                    ))}
                 </div>
                 
                 <div style={{ padding: '15px 0', borderBottom: '1px solid #eee' }}>
