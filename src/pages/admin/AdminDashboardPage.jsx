@@ -65,7 +65,7 @@ function AdminDashboardPage() {
 
       {filteredAdminProducts.length === 0 ? (
         <p style={styles.pageMessage}>
-          Nenhum produto cadastrado {adminSelectedCategory !== 'Todos' ? `para a categoria "${adminSelectedCategory}"` : ''}.
+          Nenhum produto cadastrado{adminSelectedCategory !== 'Todos' ? `para a categoria "${adminSelectedCategory}"` : ''}.
           Adicione um clicando no botão '+'.
         </p>
       ) : (

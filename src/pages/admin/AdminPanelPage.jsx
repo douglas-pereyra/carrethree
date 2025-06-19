@@ -48,11 +48,11 @@ function AdminPanelPage() {
             </Link>
           </li>
           {/* Adicione mais links conforme necessário */}
-          <li style={styles.navItem}>
+          {/* <li style={styles.navItem}>
             <Link to="/admin/configuracoes" style={styles.navLinkDisabled}>
               Configurações da Conta (Em breve)
             </Link>
-          </li>
+          </li> */}
         </ul>
       </nav>
 

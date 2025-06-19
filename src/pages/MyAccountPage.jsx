@@ -36,7 +36,7 @@ function MyAccountPage() {
 
       <section style={styles.welcomeSection}>
         <p>Olá, <strong>{currentUser.name}!</strong></p>
-        <p>Bem-vindo(a) ao seu espaço pessoal. Aqui você pode gerenciar seus dados e pedidos.</p>
+        <p>Bem-vindo(a) ao seu espaço pessoal.</p>
       </section>
 
       <section style={styles.infoSection}>
@@ -46,16 +46,18 @@ function MyAccountPage() {
             <div style={styles.infoItem}><strong>Email:</strong> {currentUser.email}</div>
         </div>
         {/* Link para uma futura página de edição de perfil */}
-        <Link to="/minha-conta/editar-perfil" style={styles.actionLink}>Editar Perfil (Em breve)</Link>
+        {/* <Link to="/minha-conta/editar-perfil" style={styles.actionLink}>Editar Perfil (Em breve)</Link> */}
       </section>
 
+      {/*
       <section style={styles.ordersSection}>
         <h2 style={styles.sectionTitle}>Meus Pedidos</h2>
-        {/* Aqui você listaria os pedidos. Por enquanto, um placeholder. */}
+        
         <p>Você ainda não tem pedidos registrados.</p>
         <p>(Funcionalidade de histórico de pedidos em breve)</p>
         <Link to="/" style={styles.actionLink}>Comece a Comprar</Link>
       </section>
+      */}
 
       {/* Você pode adicionar mais seções aqui, como:
       <section style={styles.settingsSection}>

@@ -4,12 +4,37 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
 
+// Função para validar o número do cartão de crédito usando o algoritmo de Luhn
+const isValidCreditCard = (cardNumber) => {
+    const cleanedCardNumber = cardNumber.replace(/\D/g, '');
+    if (!/^\d+$/.test(cleanedCardNumber)) {
+      return false;
+    }
+  
+    let sum = 0;
+    let shouldDouble = false;
+    for (let i = cleanedCardNumber.length - 1; i >= 0; i--) {
+      let digit = parseInt(cleanedCardNumber.charAt(i), 10);
+  
+      if (shouldDouble) {
+        digit *= 2;
+        if (digit > 9) {
+          digit -= 9;
+        }
+      }
+  
+      sum += digit;
+      shouldDouble = !shouldDouble;
+    }
+  
+    return sum % 10 === 0;
+  };
+
 function CheckoutPage() {
     const { cartItems, getCartTotalPrice, clearCart } = useCart();
     const { currentUser } = useAuth();
     const navigate = useNavigate();   
     console.log('CheckoutPage montado. Itens no carrinho:', cartItems.length);
-
 
     // Redireciona para home se o carrinho estiver vazio
     if (cartItems.length === 0) {
@@ -80,31 +105,61 @@ function CheckoutPage() {
         }
     }, [formData.zipCode]);
 
+    // Substitua sua função handleChange por esta versão completa
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-        ...prev,
-        [name]: value
-        }));
-        
+
+        // Limpa o erro do campo que está sendo modificado
         if (errors[name]) {
-        setErrors(prev => ({
-            ...prev,
-            [name]: null
-        }));
+            setErrors(prev => ({
+                ...prev,
+                [name]: null
+            }));
         }
 
-        // Formata o CEP enquanto o usuário digita
+        // Aplica a formatação (máscara) de acordo com o nome do campo
+        let formattedValue = value;
+
         if (name === 'zipCode') {
-        const formattedValue = value
-            .replace(/\D/g, '')
-            .replace(/(\d{5})(\d)/, '$1-$2')
-            .slice(0, 9);
+            formattedValue = value
+                .replace(/\D/g, '') // Remove tudo que não é dígito
+                .replace(/(\d{5})(\d)/, '$1-$2') // Adiciona o hífen
+                .slice(0, 9); // Limita o tamanho
+        }
+
+        if (name === 'cardNumber') {
+            formattedValue = value
+                .replace(/\D/g, '') // Remove não-dígitos
+                .replace(/(\d{4})(?=\d)/g, '$1 ') // Adiciona espaço a cada 4 dígitos
+                .slice(0, 19); // Limita o tamanho (16 dígitos + 3 espaços)
+        }
+
+        if (name === 'cardExpiry') {
+            formattedValue = value
+                .replace(/\D/g, '') // Remove não-dígitos
+                .replace(/(\d{2})(\d)/, '$1/$2') // Adiciona a barra após os 2 primeiros dígitos
+                .slice(0, 5); // Limita o tamanho para MM/AA
+        }
+
+        if (name === 'cardCvv') {
+            formattedValue = value
+                .replace(/\D/g, '') // Remove não-dígitos
+                .slice(0, 4); // Limita o tamanho (CVV pode ter até 4 dígitos)
+        }
+        
+        if (name === 'phone') {
+            formattedValue = value
+                .replace(/\D/g, '') // Remove não-dígitos
+                .replace(/^(\d{2})(\d)/g, '($1) $2') // Coloca parênteses nos dois primeiros dígitos
+                .replace(/(\d{5})(\d)/, '$1-$2') // Coloca hífen depois do quinto dígito (para celular)
+                .slice(0, 15); // Limita o tamanho
+        }
+
+        // Atualiza o estado com o valor formatado
         setFormData(prev => ({
             ...prev,
-            zipCode: formattedValue
+            [name]: formattedValue
         }));
-        }
     };
 
     // Validação dos campos obrigatórios do formulário
@@ -123,6 +178,40 @@ function CheckoutPage() {
         if (!formData.zipCode.trim()) newErrors.zipCode = 'CEP é obrigatório';
         if (formData.zipCode.replace(/\D/g, '').length !== 8) newErrors.zipCode = 'CEP inválido';
         
+        if (formData.paymentMethod === 'credit') {
+            // Campo de número do cartão
+            if (!formData.cardNumber.trim()) {
+                newErrors.cardNumber = 'Número do cartão é obrigatório';
+            } else if (!isValidCreditCard(formData.cardNumber)) {
+                newErrors.cardNumber = 'Número de cartão inválido';
+            }
+
+            // Campo de nome no cartão
+            if (!formData.cardName.trim()) {
+                newErrors.cardName = 'Nome no cartão é obrigatório';
+            }
+
+            // Campo de Validade (MM/AA)
+            if (!formData.cardExpiry.trim()) {
+                newErrors.cardExpiry = 'Validade é obrigatória';
+            } else if (!/^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(formData.cardExpiry)) {
+                newErrors.cardExpiry = 'Formato inválido (use MM/AA)';
+            } else {
+                const [month, year] = formData.cardExpiry.split('/');
+                const expiryDate = new Date(`20${year}`, month, 1); // Dia 1 do mês seguinte ao de expiração
+                if (expiryDate < new Date()) {
+                    newErrors.cardExpiry = 'Cartão expirado';
+                }
+            }
+
+            // Campo de CVV
+            if (!formData.cardCvv.trim()) {
+                newErrors.cardCvv = 'CVV é obrigatório';
+            } else if (!/^[0-9]{3,4}$/.test(formData.cardCvv)) {
+                newErrors.cardCvv = 'CVV inválido';
+            }
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -139,7 +228,7 @@ function CheckoutPage() {
         e.preventDefault();
         
         if (!validateForm()) {
-        return;
+            return;
         }
         
         setIsSubmitting(true);
@@ -166,7 +255,7 @@ function CheckoutPage() {
             });
             
             //saveOrderToHistory(orderData);
-            navigate('/checkout/success', { replace: true });  
+            navigate('/checkout/success', { replace: true });
         } catch (error) {
             console.error('Checkout error:', error);
         } finally {

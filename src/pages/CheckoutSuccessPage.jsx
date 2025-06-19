@@ -63,7 +63,7 @@ function CheckoutSuccessPage() {
                     Voltar à Loja
                 </Link>
                 
-                <Link 
+                {/* <Link 
                     to="/minha-conta/pedidos" 
                     style={{ 
                     textDecoration: 'none',
@@ -76,7 +76,7 @@ function CheckoutSuccessPage() {
                     }}
                 >
                     Meus Pedidos
-                </Link>
+                </Link> */}
                 </div>
             </div>
         </div>

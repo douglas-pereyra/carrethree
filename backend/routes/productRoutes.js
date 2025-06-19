@@ -79,7 +79,7 @@ router.post('/', protect, admin, upload.single('image'), async (req, res) => {
 // --- ROTA 2: ATUALIZAR UM PRODUTO ---
 // @desc    Atualiza um produto existente
 // @route   PUT /api/products/:id
-router.put('/:id', protect, admin, async (req, res) => {
+router.put('/:id', protect, admin, upload.single('image'), async (req, res) => {
     try {
       const { name, price, image, category, description, countInStock } = req.body;
       const product = await Product.findById(req.params.id);
@@ -87,11 +87,14 @@ router.put('/:id', protect, admin, async (req, res) => {
       if (product) {
         product.name = name || product.name;
         product.price = price || product.price;
-        product.image = image || product.image;
         product.category = category || product.category;
         product.description = description || product.description;
         product.countInStock = countInStock !== undefined ? countInStock : product.countInStock;
   
+        if (req.file) {
+          product.image =`${process.env.BACKEND_URL}/uploads/${req.file.filename}`;
+        }
+        
         const updatedProduct = await product.save();
         res.json(updatedProduct);
       } else {

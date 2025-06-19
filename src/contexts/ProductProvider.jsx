@@ -106,10 +106,9 @@ export function ProductProvider({ children }) {
       const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify(updatedData),
+        body: updatedData, // Envia o FormData diretamente
       });
 
       if (!response.ok) {

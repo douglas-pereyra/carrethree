@@ -16,6 +16,10 @@ function AdminEditProductPage() {
   const [image, setImage] = useState('');
   const [countInStock, setCountInStock] = useState('');
 
+  // Estados para o upload de imagem
+  const [imageFile, setImageFile] = useState(null); // Armazena o ARQUIVO da nova imagem
+  const [imagePreview, setImagePreview] = useState(''); // Armazena a URL da imagem atual ou do preview da nova
+
   // Estados de controle da página
   const [isFetchingDetails, setIsFetchingDetails] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,21 +57,34 @@ function AdminEditProductPage() {
     }
   }, [productId, isLoadingProducts]); // Depende do carregamento dos produtos
 
+  // Função para lidar com a mudança de imagem
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setImageFile(file); // Guarda o arquivo
+      setImagePreview(URL.createObjectURL(file)); // Cria uma URL temporária para o preview
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsSubmitting(true);
     setError('');
 
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('price', price);
+    formData.append('category', category);
+    formData.append('description', description);
+    formData.append('countInStock', countInStock);
+    
+    // Anexa a nova imagem APENAS se uma foi selecionada
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+
     try {
-      const updatedData = {
-        name,
-        price: parseFloat(price),
-        category,
-        description,
-        image,
-        countInStock: parseInt(countInStock, 10)
-      };
-      const result = await updateProduct(productId, updatedData);
+      const result = await updateProduct(productId, formData);
 
       if (result.success) {
         alert('Produto atualizado com sucesso!');
@@ -129,10 +146,24 @@ function AdminEditProductPage() {
           <input type="number" value={countInStock} onChange={(e) => setCountInStock(e.target.value)} required style={{ width: '100%', padding: '8px', marginTop: '5px' }} />
         </div>
 
+        {/* CAMPO DE IMAGEM */}
         <div style={{ marginBottom: '15px' }}>
-          <label>URL da Imagem:</label>
-          <input type="text" value={image} onChange={(e) => setImage(e.target.value)} required style={{ width: '100%', padding: '8px', marginTop: '5px' }} />
+          <label>Imagem do Produto (opcional, para alterar):</label>
+          <input 
+            type="file" 
+            accept="image/*"
+            onChange={handleImageChange} 
+            style={{ width: '100%', padding: '8px', marginTop: '5px' }} 
+          />
         </div>
+
+        {/* PREVIEW DA IMAGEM */}
+        {imagePreview && (
+          <div style={{ marginBottom: '15px', textAlign: 'center' }}>
+            <p>Imagem Atual:</p>
+            <img src={imagePreview} alt="Preview do produto" style={{ maxWidth: '200px', maxHeight: '200px', border: '1px solid #ddd', borderRadius: '4px' }} />
+          </div>
+        )}
 
         <div style={{ marginBottom: '15px' }}>
           <label>Descrição:</label>
