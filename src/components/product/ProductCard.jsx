@@ -12,7 +12,7 @@ function ProductCard({ product }) {
   }
 
   // Lógica de estoque
-  const cartItem = cartItems.find(item => item._id === product._id);
+  const cartItem = cartItems.find(item => item.product._id === product._id);
   const quantityInCart = cartItem ? cartItem.quantity : 0;
   const isOutOfStock = product.countInStock === 0;
   const isLimitReached = quantityInCart >= product.countInStock;

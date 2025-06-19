@@ -95,19 +95,40 @@ export function CartProvider({ children }) {
   }, [isAuthenticated, currentUser]);
 
   const updateQuantity = useCallback(async (productId, newQuantity) => {
-    if (newQuantity <= 0) {
-      await removeItem(productId);
-      return;
-    }
-    if (isAuthenticated) {
-        try {
-            const updatedCart = await fetchAuthenticated('http://localhost:5000/api/cart/update', { method: 'PUT', body: JSON.stringify({ productId, quantity: newQuantity }) }, currentUser.token);
-            setCartItems(updatedCart);
-        } catch (error) { console.error("Erro ao atualizar quantidade:", error); }
-    } else {
-        setCartItems(prevItems => prevItems.map(item => item.product._id === productId ? { ...item, quantity: newQuantity } : item));
-    }
-  }, [isAuthenticated, currentUser, removeItem]);
+  if (newQuantity <= 0) {
+    await removeItem(productId);
+    return;
+  }
+
+  // Encontra o item no carrinho para pegar o limite de estoque
+  const itemToUpdate = cartItems.find(item => item.product._id === productId);
+  if (!itemToUpdate) return; // Item não encontrado, não faz nada
+
+  const stockLimit = itemToUpdate.product.countInStock;
+
+  // Valida se a nova quantidade não ultrapassa o estoque
+  const quantityToSet = Math.min(newQuantity, stockLimit);
+
+  if (isAuthenticated) {
+      try {
+          const updatedCart = await fetchAuthenticated(
+              'http://localhost:5000/api/cart/update',
+              {
+                  method: 'PUT',
+                  body: JSON.stringify({ productId, quantity: quantityToSet }),
+              },
+              currentUser.token
+          );
+          setCartItems(updatedCart);
+      } catch (error) { console.error("Erro ao atualizar quantidade:", error); }
+  } else {
+      setCartItems(prevItems => prevItems.map(item => 
+          item.product._id === productId 
+              ? { ...item, quantity: quantityToSet } 
+              : item
+      ));
+  }
+}, [isAuthenticated, currentUser, cartItems, removeItem]);
 
   const clearCart = useCallback(async () => {
     if (isAuthenticated) {
