@@ -81,7 +81,7 @@ router.post('/', protect, admin, upload.single('image'), async (req, res) => {
 // @route   PUT /api/products/:id
 router.put('/:id', protect, admin, upload.single('image'), async (req, res) => {
     try {
-      const { name, price, image, category, description, countInStock } = req.body;
+      const { name, price, category, description, countInStock } = req.body;
       const product = await Product.findById(req.params.id);
   
       if (product) {
