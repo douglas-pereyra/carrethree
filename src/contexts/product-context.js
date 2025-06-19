@@ -1,28 +1,39 @@
-// src/contexts/product-context.js
+/**
+ * @fileoverview Creates the product context for the application.
+ * This file defines the default "shape" for product-related data and functions.
+ */
+
 import { createContext } from 'react';
 
 export const defaultProductContextValue = {
+  // A safety flag used by the useProducts hook.
+  _isDefault: true,
   products: [],
-  // eslint-disable-next-line no-unused-vars
-  addProduct: async (productData) => {
-    console.warn('addProduct fora do ProductProvider');
-    return null;
-  },
-  // eslint-disable-next-line no-unused-vars
-  updateProduct: async (productId, productData) => {
-    console.warn('updateProduct fora do ProductProvider');
-    return null;
-  },
-  // eslint-disable-next-line no-unused-vars
-  deleteProduct: async (productId) => {
-    console.warn('deleteProduct fora do ProductProvider');
-  },
-  // eslint-disable-next-line no-unused-vars
-  getProductById: (productId) => {
-    console.warn('getProductById fora do ProductProvider');
-    return undefined;
-  },
+  allProducts: [], // Added for consistency with what the Provider offers
   isLoadingProducts: true,
+  
+  // Placeholder functions for admin actions.
+  addProduct: async () => {
+    console.warn('addProduct called outside of a ProductProvider');
+    return { success: false, message: 'ProductProvider not found' };
+  },
+  updateProduct: async () => {
+    console.warn('updateProduct called outside of a ProductProvider');
+    return { success: false, message: 'ProductProvider not found' };
+  },
+  deleteProduct: async () => {
+    console.warn('deleteProduct called outside of a ProductProvider');
+    return { success: false, message: 'ProductProvider not found' };
+  },
+
+  // Placeholder functions for customer actions.
+  searchProducts: () => {
+    console.warn('searchProducts called outside of a ProductProvider');
+  },
+  filterByCategory: () => {
+    console.warn('filterByCategory called outside of a ProductProvider');
+  },
 };
 
+// Creates the product context object.
 export const ProductContext = createContext(defaultProductContextValue);

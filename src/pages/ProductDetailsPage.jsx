@@ -1,24 +1,41 @@
-// src/pages/ProductDetailsPage.jsx
+/**
+ * @fileoverview Defines the ProductDetailsPage, which displays detailed
+ * information about a single product.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../hooks/useCart';
 
+// --- Constants ---
+const API_BASE_URL = 'http://localhost:5000/api/products';
+
+/**
+ * Renders the product detail page.
+ * This page fetches data for a single product from the API based on the URL parameter,
+ * and allows the user to add it to the cart, respecting stock limits.
+ */
 function ProductDetailsPage() {
-  const { productId } = useParams(); // Pega o ID da URL
+  // --- Hooks ---
+  const { productId } = useParams(); // Gets the product ID from the URL (e.g., /produto/123)
   const { addItem, cartItems } = useCart();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Hook to programmatically navigate
 
-  const [product, setProduct] = useState(null);
-  const [quantity, setQuantity] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  // --- State ---
+  const [product, setProduct] = useState(null); // Holds the fetched product data
+  const [quantity, setQuantity] = useState(1);   // Manages the quantity selector
+  const [isLoading, setIsLoading] = useState(true); // Tracks the data fetching loading state
+  const [error, setError] = useState('');         // Holds any error message
 
-  // Este useEffect agora busca os dados diretamente da nossa API.
+  // --- Effects ---
+
+  // Fetches the product details from the API when the component mounts or the productId changes.
   useEffect(() => {
     const fetchProductDetails = async () => {
       setIsLoading(true);
+      setError('');
       try {
-        const response = await fetch(`http://localhost:5000/api/products/${productId}`);
+        const response = await fetch(`${API_BASE_URL}/${productId}`);
         if (!response.ok) {
           throw new Error('Produto não encontrado');
         }
@@ -32,14 +49,20 @@ function ProductDetailsPage() {
     };
 
     fetchProductDetails();
-  }, [productId]); // Roda sempre que o ID na URL mudar.
+  }, [productId]); // Dependency array ensures this runs again if the user navigates to a different product page.
 
-  // Lógica de Estoque (reaplicada aqui)
-  const cartItem = product ? cartItems.find(item => item.product._id === product._id) : null;
+
+  // --- Stock Availability Logic ---
+  // This logic runs on every render to ensure the UI is always up-to-date with stock info.
+
+  // **BUG FIX**: Checks the flat cartItems structure (`item._id`) instead of the old nested one.
+  const cartItem = product ? cartItems.find(item => item._id === product._id) : null;
   const quantityInCart = cartItem ? cartItem.quantity : 0;
+  
   const isOutOfStock = product && product.countInStock === 0;
   const isLimitReached = product && quantityInCart >= product.countInStock;
 
+  // Determine the text and disabled state for the "Add to Cart" button.
   let buttonText = 'Adicionar ao Carrinho';
   let isButtonDisabled = false;
 
@@ -51,8 +74,11 @@ function ProductDetailsPage() {
     isButtonDisabled = true;
   }
   
+  // --- Event Handlers ---
+
   const handleQuantityChange = (change) => {
     const newQuantity = quantity + change;
+    // User cannot select a quantity higher than the available stock.
     const availableStock = product.countInStock - quantityInCart;
     if (newQuantity > 0 && newQuantity <= availableStock) {
         setQuantity(newQuantity);
@@ -60,14 +86,17 @@ function ProductDetailsPage() {
   };
 
   const handleAddToCart = () => {
-    if (product && !isButtonDisabled) {
-      const availableStock = product.countInStock - quantityInCart;
-      const quantityToAdd = Math.min(quantity, availableStock);
-      if (quantityToAdd > 0) {
-        addItem(product, quantityToAdd);
-      }
+    if (!product || isButtonDisabled) return;
+
+    const availableStock = product.countInStock - quantityInCart;
+    const quantityToAdd = Math.min(quantity, availableStock);
+    
+    if (quantityToAdd > 0) {
+      addItem(product, quantityToAdd);
     }
   };
+
+  // --- Conditional Rendering ---
 
   if (isLoading) {
     return <div style={styles.pageMessage}>Carregando informações do produto...</div>;
@@ -83,6 +112,8 @@ function ProductDetailsPage() {
     );
   }
 
+  // --- Main Render ---
+
   return (
     <div style={styles.container}>
       <button onClick={() => navigate(-1)} style={styles.backButton}>&larr; Voltar</button>
@@ -96,7 +127,7 @@ function ProductDetailsPage() {
           <p style={{ fontSize: '0.9em', color: isOutOfStock ? 'red' : '#6c757d', marginBottom: '15px' }}>
             {isOutOfStock ? 'Sem estoque' : `Estoque disponível: ${product.countInStock}`}
           </p>
-          <p style={styles.productPrice}>R$ {typeof product.price === 'number' ? product.price.toFixed(2).replace('.', ',') : 'N/A'}</p>
+          <p style={styles.productPrice}>R$ {product.price?.toFixed(2).replace('.', ',')}</p>
           <p style={styles.productDescription}>{product.description || 'Sem descrição disponível.'}</p>
 
           <div style={styles.actionsContainer}>
@@ -105,7 +136,7 @@ function ProductDetailsPage() {
               <input
                 type="number"
                 value={quantity}
-                readOnly
+                readOnly // Input is controlled by buttons only.
                 style={styles.quantityInput}
                 aria-label="Quantidade"
               />
@@ -121,7 +152,7 @@ function ProductDetailsPage() {
   );
 }
 
-// ... (seus estilos continuam aqui)
+// --- Styles ---
 const styles = {
   container: {
     maxWidth: '1000px',
@@ -138,6 +169,7 @@ const styles = {
     cursor: 'pointer',
     fontSize: '0.9em',
   },
+  // ... (o resto dos seus estilos permanece aqui)
   productDetailLayout: {
     display: 'flex',
     gap: '30px',
@@ -235,5 +267,5 @@ const styles = {
   }
 };
 
-export default ProductDetailsPage;
 
+export default ProductDetailsPage;
