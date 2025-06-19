@@ -1,10 +1,14 @@
-// src/App.jsx
+/**
+ * @fileoverview This is the root component file for the React application.
+ * It sets up the main router and layout structure.
+ */
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import { useProducts } from './hooks/useProducts';
 
-// Páginas
+// Import all page components
 import HomePage from './pages/HomePage';
 import CartPage from './pages/CartPage';
 import LoginPage from './pages/LoginPage';
@@ -17,35 +21,46 @@ import AdminEditProductPage from './pages/admin/AdminEditProductPage';
 import CheckoutPage from './pages/CheckoutPage';
 import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
 
-// Layout e Componentes de Rota
+// Import layout and route guard components
 import Navbar from './components/layout/Navbar';
 import CategoryBar from './components/layout/CategoryBar';
 import ProtectedRoute from './components/routes/ProtectedRoute';
 import AdminProtectedRoute from './components/routes/AdminProtectedRoute';
 
+/**
+ * Manages the main layout of the application.
+ * It conditionally renders the Navbar and CategoryBar based on the current route,
+ * and handles the dynamic padding to prevent content from being hidden by the fixed navbar.
+ */
 function MainLayout() {
+  // --- Hooks ---
   const location = useLocation();
   const auth = useAuth();
-  // Pega tudo que precisamos do nosso provider
   const { allProducts, searchProducts, filterByCategory } = useProducts();
-
-  const pathsWithoutNavbar = ['/login'];
-  const showNavbarAndCategoryBar = !pathsWithoutNavbar.includes(location.pathname);
-
-  const [selectedCustomerCategory, setSelectedCustomerCategory] = useState('Todos');
-  const [navbarHeight, setNavbarHeight] = useState(0);
   const navbarRef = useRef(null);
 
+  // --- State ---
+  const [selectedCustomerCategory, setSelectedCustomerCategory] = useState('Todos');
+  const [navbarHeight, setNavbarHeight] = useState(0);
+
+  // --- Conditional Rendering Logic ---
+  const pathsWithoutNavbar = ['/login'];
+  const showNavbarAndCategoryBar = !pathsWithoutNavbar.includes(location.pathname);
+  
+  // --- Event Handlers ---
   const handleSearch = (keyword) => {
     searchProducts(keyword);
   };
-
   const handleCustomerCategorySelect = (category) => {
     setSelectedCustomerCategory(category);
-    filterByCategory(category); // Chama a função do provider para filtrar a lista
+    filterByCategory(category);
   };
 
-  // Lógica para altura da Navbar (sem alterações)
+  // --- Navbar Height Logic for Dynamic Padding ---
+  // This logic ensures that the main content of the page is not obscured
+  // by the fixed-position Navbar.
+  
+  // A memoized function to measure the navbar's height.
   const measureNavbarHeight = useCallback(() => {
     if (showNavbarAndCategoryBar && navbarRef.current && !auth.isLoadingAuth) {
       const currentNavbarHeight = navbarRef.current.offsetHeight;
@@ -57,44 +72,54 @@ function MainLayout() {
     }
   }, [showNavbarAndCategoryBar, auth.isLoadingAuth, navbarRef, navbarHeight]);
 
+  // Effects to trigger the height measurement when the layout might change.
   useEffect(() => {
     measureNavbarHeight();
   }, [measureNavbarHeight, showNavbarAndCategoryBar, auth.isLoadingAuth, location.pathname]);
-
+  
   useEffect(() => {
     if (showNavbarAndCategoryBar) {
       const handleResize = () => measureNavbarHeight();
       window.addEventListener('resize', handleResize);
-      handleResize();
       return () => window.removeEventListener('resize', handleResize);
     }
   }, [showNavbarAndCategoryBar, measureNavbarHeight]);
 
+  // Calculate the padding-top value based on the measured navbar height.
   const calculatedPaddingTop = showNavbarAndCategoryBar ? `${navbarHeight}px` : '0';
 
+  // --- Render ---
   return (
     <>
+      {/* Conditionally render the Navbar and pass the ref to it. */}
       {showNavbarAndCategoryBar && <Navbar ref={navbarRef} onSearch={handleSearch} />}
+      
       <div style={{ paddingTop: calculatedPaddingTop }}>
+        {/* Conditionally render the CategoryBar, only on the homepage. */}
         {showNavbarAndCategoryBar && location.pathname === '/' && (
           <CategoryBar
-            products={allProducts} // A barra de categorias sempre usa a lista completa
+            products={allProducts}
             onSelectCategory={handleCustomerCategorySelect}
             activeCategory={selectedCustomerCategory}
           />
         )}
         <main>
+          {/* Defines all the application's routes. */}
           <Routes>
-            {/* HomePage não precisa mais de props de filtro/busca */}
+            {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/produto/:productId" element={<ProductDetailsPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/carrinho" element={<CartPage />} />
+            
+            {/* Protected Routes for authenticated regular users */}
             <Route element={<ProtectedRoute />}>
               <Route path="/minha-conta" element={<MyAccountPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
             </Route>
+
+            {/* Protected Routes for admin users only */}
             <Route element={<AdminProtectedRoute />}>
               <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
               <Route path="/admin/panel" element={<AdminPanelPage />} />
@@ -108,6 +133,10 @@ function MainLayout() {
   );
 }
 
+/**
+ * The root App component.
+ * Its main responsibility is to set up the Router that enables navigation.
+ */
 function App() {
   return (
     <Router>

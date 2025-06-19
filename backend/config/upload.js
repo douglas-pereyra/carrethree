@@ -1,34 +1,54 @@
-// backend/config/upload.js
+/**
+ * @fileoverview Configures the 'multer' middleware for handling file uploads.
+ * This setup is specifically tailored for uploading product images, defining storage
+ * location, filename generation, and file validation rules.
+ */
+
 import multer from 'multer';
 import path from 'path';
 
-// Define onde os arquivos serão armazenados
+// Configures how files are stored on the server's disk.
 const storage = multer.diskStorage({
+  /**
+   * Specifies the destination folder for uploaded files.
+   * For this project, all product images will be saved in 'backend/public/uploads/'.
+   */
   destination: function (req, file, cb) {
-    // A pasta 'public/uploads' será criada dentro da pasta 'backend'
-    cb(null, 'public/uploads/'); 
+    cb(null, 'public/uploads/');
   },
+  
+  /**
+   * Generates a unique filename for each uploaded file to prevent overwrites.
+   * The new filename will be in the format: 'image-[timestamp]-[random_number].[extension]'.
+   */
   filename: function (req, file, cb) {
-    // Garante que cada imagem tenha um nome único, adicionando a data atual ao nome original
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
-// Filtro para aceitar apenas imagens
+/**
+ * A filter function to ensure only image files are accepted.
+ * It checks the file's mimetype to validate its format.
+ */
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image/')) {
+    // If the file is an image, accept it.
     cb(null, true);
   } else {
-    cb(new Error('Formato de arquivo não suportado! Apenas imagens são permitidas.'), false);
+    // If not, reject it with an error message.
+    cb(new Error('Unsupported file format! Only images are allowed.'), false);
   }
 };
 
+// Creates the main multer instance with the defined storage, filter, and limits.
+// This 'upload' object will be used as middleware in the product routes.
 const upload = multer({ 
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 1024 * 1024 * 5 // Limite de 5MB por arquivo
+    // Sets a file size limit of 5 Megabytes for each upload.
+    fileSize: 1024 * 1024 * 5 // 5MB
   }
 });
 

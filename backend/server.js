@@ -1,41 +1,72 @@
-// backend/server.js
-// 1. Importação dos Módulos
+/**
+ * @fileoverview The main entry point for the Carrethree backend server.
+ * This file initializes the Express application, connects to the database,
+ * configures middleware, mounts API routes, and starts the server.
+ */
+
+// --- 1. Module Imports ---
 import path from 'path';
 import { fileURLToPath } from 'url';
-
-import express from 'express';      // Framework para criar o servidor
-import dotenv from 'dotenv';        // Para gerenciar variáveis de ambiente (do arquivo .env)
-import cors from 'cors';            // Para permitir requisições de outros "endereços" (frontend)
-import connectDB from './config/db.js'; // Nossa função de conexão com o MongoDB
-import productRoutes from './routes/productRoutes.js'; // Nosso arquivo de rotas para produtos
-import userRoutes from './routes/userRoutes.js'; // <-- Importa as rotas de usuário
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import connectDB from './config/db.js';
+import productRoutes from './routes/productRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 
+// --- 2. Initializations ---
+
+// Load environment variables from the .env file into process.env
 dotenv.config();
+
+// Establish the connection to the MongoDB database
 connectDB();
 
+// Initialize the Express application
 const app = express();
+
+
+// --- 3. Middleware Configuration ---
+
+// Enable Cross-Origin Resource Sharing (CORS) to allow requests from the frontend client.
 app.use(cors());
+
+// Enable the application to parse incoming requests with JSON payloads.
 app.use(express.json());
 
+
+// --- 4. API Routes ---
+
+// A simple root route to confirm that the API is running.
 app.get('/', (req, res) => {
-  res.send('API do Mercado Online está funcionando!');
+  res.send('Carrethree API is running...');
 });
 
-// "Monta" as rotas
+// Mount the routers for different parts of the API.
+// All routes defined in productRoutes will be prefixed with /api/products.
 app.use('/api/products', productRoutes);
-app.use('/api/users', userRoutes); // <-- Diz ao Express para usar as rotas de usuário
+app.use('/api/users', userRoutes);
 app.use('/api/cart', cartRoutes);
 
-// Upload de imagens
+
+// --- 5. Static Asset Handling ---
+
+// In ES Modules, __dirname is not available by default. This logic re-creates it.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Configure a static folder for serving uploaded images.
+// A request to '/uploads/image.jpg' will serve the file from 'backend/public/uploads/image.jpg'.
 app.use('/uploads', express.static(path.join(__dirname, '/public/uploads')));
 
-// 5. Inicialização do Servidor
-const PORT = process.env.PORT || 5000; // Usa a porta definida no .env ou a porta 5000 como padrão
 
+// --- 6. Server Startup ---
 
+// Define the port for the server, using the value from the .env file or defaulting to 5000.
+const PORT = process.env.PORT || 5000;
+
+// Start the server and listen for incoming connections on the specified port.
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor backend rodando na porta ${PORT}`);
+  console.log(`🚀 Backend server is running on port ${PORT}`);
 });
