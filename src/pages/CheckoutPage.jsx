@@ -684,7 +684,7 @@ function CheckoutPage() {
             <div style={{ marginTop: '20px', backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 <h3 style={{ fontSize: '1rem', marginBottom: '15px' }}>Política de Entrega</h3>
                 <p style={{ fontSize: '0.9rem', color: '#666' }}>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Beatae a architecto minus ut et consequuntur, autem, quaerat omnis officiis reprehenderit culpa voluptatem explicabo id, vel iure aspernatur illo. Maiores, dolorem.
+                Nossas entregas são realizadas de Segunda a Sábado em São Carlos - SP, com uma taxa de entrega fixa de R$ 10,00. Pedidos com pagamento aprovado são despachados e entregues em horário comercial no próximo dia útil. É indispensável a presença de um responsável maior de 18 anos para receber as compras.
                 </p>
             </div>
             </div>

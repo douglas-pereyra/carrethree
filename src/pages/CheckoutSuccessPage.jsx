@@ -12,7 +12,7 @@ function CheckoutSuccessPage() {
     
     useEffect(() => {// Executa apenas uma vez na montagem
         clearCart(); // Limpa o carrinho assim que a página é carregada 
-    }, []);
+    }, [clearCart]);
 
 
     return (
