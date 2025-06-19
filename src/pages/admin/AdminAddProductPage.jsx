@@ -114,6 +114,7 @@ function AdminAddProductPage() {
         setError(result.message || 'Falha ao adicionar produto.');
       }
     } catch (err) {
+      console.error('Erro ao adicionar produto:', err);
       setError('Falha ao adicionar produto. Tente novamente.');
     } finally {
       setIsSubmitting(false);
