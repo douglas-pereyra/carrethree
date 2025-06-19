@@ -13,7 +13,6 @@ function AdminEditProductPage() {
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
-  const [image, setImage] = useState('');
   const [countInStock, setCountInStock] = useState('');
 
   // Estados para o upload de imagem
@@ -44,7 +43,7 @@ function AdminEditProductPage() {
           setPrice(data.price);
           setCategory(data.category);
           setDescription(data.description || '');
-          setImage(data.image);
+          setImagePreview(data.image);
           setCountInStock(data.countInStock);
         } catch (err) {
           setError(err.message);
