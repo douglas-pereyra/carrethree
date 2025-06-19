@@ -74,8 +74,8 @@ Siga os passos abaixo para configurar e executar o projeto localmente.
 Clone o repositório para a sua máquina:
 
 ```bash
-git clone https://github.com/douglas-pereyra/OnlineStore.git
-cd OnlineStore
+git clone https://github.com/douglas-pereyra/carrethree.git
+cd carrethree
 ```
 
 Como o projeto é um **monorepo** (contém backend e frontend), você precisa instalar as dependências em ambas as pastas.
