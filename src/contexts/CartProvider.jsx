@@ -169,15 +169,25 @@ export function CartProvider({ children }) {
    * Updates the quantity of an item. Uses API if logged in, otherwise uses local state.
    */
   const updateQuantity = useCallback(async (productId, newQuantity) => {
+    // If the new quantity is 0 or less, just remove the item.
     if (newQuantity <= 0) {
       return removeItem(productId);
     }
     
+    // Find the item in the current cart to check its stock limit.
+    const itemToUpdate = cartItems.find(item => item._id === productId);
+    if (!itemToUpdate) return; // Failsafe if item is not found.
+    
+    // Determine the maximum quantity allowed based on the stock.
+    const stockLimit = itemToUpdate.countInStock;
+    const quantityToSet = Math.min(newQuantity, stockLimit);
+
     if (isAuthenticated) {
+      // Authenticated user logic (API call)
       try {
         const updatedApiCart = await fetchAuthenticated(
           `${API_BASE_URL}/update`,
-          { method: 'PUT', body: JSON.stringify({ productId, quantity: newQuantity }) },
+          { method: 'PUT', body: JSON.stringify({ productId, quantity: quantityToSet }) },
           currentUser.token
         );
         setCartItems(formatCartData(updatedApiCart));
@@ -185,11 +195,14 @@ export function CartProvider({ children }) {
         console.error("Error updating quantity:", error);
       }
     } else {
+      // Guest user logic (local state)
       setCartItems(prevItems => prevItems.map(item => 
-        item._id === productId ? { ...item, quantity: newQuantity } : item
+        item._id === productId 
+            ? { ...item, quantity: quantityToSet } 
+            : item
       ));
     }
-  }, [isAuthenticated, currentUser, removeItem]);
+  }, [isAuthenticated, currentUser, cartItems, removeItem]);
 
   /**
    * Clears the entire cart. Uses API if logged in, otherwise uses local state.
