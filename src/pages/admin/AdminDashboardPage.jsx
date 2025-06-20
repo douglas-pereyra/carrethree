@@ -92,6 +92,7 @@ function AdminDashboardPage() {
         alert(`Produto "${productName}" excluído com sucesso!`);
       } catch (error) {
         // In a real app, you might use a more sophisticated notification system.
+        console.error('Erro ao excluir produto:', error);
         alert('Falha ao excluir produto.');
       }
     }

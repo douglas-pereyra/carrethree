@@ -22,6 +22,7 @@ const getToken = () => {
     const userInfo = JSON.parse(localStorage.getItem('carrethreeAuthUser'));
     return userInfo ? userInfo.token : null;
   } catch (error) {
+    console.error("Error retrieving token from localStorage:", error);
     return null;
   }
 };

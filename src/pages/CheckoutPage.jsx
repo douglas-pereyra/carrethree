@@ -86,6 +86,7 @@ function CheckoutPage() {
         }
       } catch (error) {
         // Silently fail on API error, user can still input manually.
+        console.error('Error fetching address:', error);
       } finally {
         setIsFetchingAddress(false);
       }
